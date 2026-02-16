@@ -1,0 +1,258 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1024" width="2048" height="1024">
+  <defs>
+    <!-- Sky gradient -->
+    <linearGradient id="terSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a4a8a"/>
+      <stop offset="40%" stop-color="#4a8ac0"/>
+      <stop offset="70%" stop-color="#80b8e0"/>
+      <stop offset="100%" stop-color="#a0d0e8"/>
+    </linearGradient>
+    <!-- Ground/horizon gradient -->
+    <linearGradient id="terHorizon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#60a848"/>
+      <stop offset="50%" stop-color="#4a8838"/>
+      <stop offset="100%" stop-color="#3a6828"/>
+    </linearGradient>
+    <!-- Floor gradient (terrace deck) -->
+    <linearGradient id="terFloor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b09878"/>
+      <stop offset="100%" stop-color="#6a5840"/>
+    </linearGradient>
+    <!-- Deck wood pattern -->
+    <pattern id="deckWood" x="0" y="0" width="200" height="20" patternUnits="userSpaceOnUse">
+      <rect width="200" height="20" fill="#a08868"/>
+      <rect x="0" y="0" width="198" height="18" fill="#b09878" rx="1"/>
+      <line x1="0" y1="19" x2="200" y2="19" stroke="#907858" stroke-width="1"/>
+    </pattern>
+    <!-- Sun glow -->
+    <radialGradient id="sunGlow" cx="75%" cy="25%" r="30%">
+      <stop offset="0%" stop-color="#fff8e044"/>
+      <stop offset="50%" stop-color="#ffe8a022"/>
+      <stop offset="100%" stop-color="#ffe8a000"/>
+    </radialGradient>
+    <!-- Railing metal -->
+    <linearGradient id="railGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#808888"/>
+      <stop offset="40%" stop-color="#c0c8c8"/>
+      <stop offset="100%" stop-color="#909898"/>
+    </linearGradient>
+    <!-- Plant green -->
+    <radialGradient id="plantGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5aaa40"/>
+      <stop offset="100%" stop-color="#3a7a28"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect x="0" y="0" width="2048" height="520" fill="url(#terSky)"/>
+
+  <!-- Sun -->
+  <circle cx="1550" cy="180" r="50" fill="#fff8d0" opacity="0.8"/>
+  <circle cx="1550" cy="180" r="60" fill="#fff8d0" opacity="0.2"/>
+  <rect x="0" y="0" width="2048" height="520" fill="url(#sunGlow)"/>
+
+  <!-- Clouds -->
+  <g opacity="0.6">
+    <ellipse cx="300" cy="120" rx="120" ry="30" fill="#fff" opacity="0.5"/>
+    <ellipse cx="350" cy="110" rx="80" ry="25" fill="#fff" opacity="0.6"/>
+    <ellipse cx="260" cy="115" rx="60" ry="22" fill="#fff" opacity="0.4"/>
+
+    <ellipse cx="900" cy="80" rx="100" ry="25" fill="#fff" opacity="0.4"/>
+    <ellipse cx="940" cy="72" rx="70" ry="20" fill="#fff" opacity="0.5"/>
+
+    <ellipse cx="1800" cy="100" rx="90" ry="22" fill="#fff" opacity="0.35"/>
+    <ellipse cx="1830" cy="92" rx="60" ry="18" fill="#fff" opacity="0.45"/>
+  </g>
+
+  <!-- Distant mountains/hills -->
+  <path d="M0,420 Q200,340 400,400 Q600,350 800,390 Q1000,330 1200,380 Q1400,340 1600,370 Q1800,320 2048,380 L2048,520 L0,520 Z" fill="#4a8858" opacity="0.5"/>
+  <path d="M0,450 Q300,400 500,440 Q700,390 900,430 Q1100,380 1300,420 Q1500,390 1700,410 Q1900,380 2048,420 L2048,520 L0,520 Z" fill="#3a7848" opacity="0.5"/>
+
+  <!-- Horizon line / distant ground -->
+  <rect x="0" y="480" width="2048" height="40" fill="url(#terHorizon)"/>
+
+  <!-- Terrace ceiling / overhang -->
+  <rect x="0" y="0" width="2048" height="50" fill="#5a4838" opacity="0.6"/>
+  <!-- Ceiling beams -->
+  <g fill="#4a3828" opacity="0.5">
+    <rect x="0" y="40" width="2048" height="10"/>
+    <rect x="100" y="0" width="20" height="50"/>
+    <rect x="400" y="0" width="20" height="50"/>
+    <rect x="700" y="0" width="20" height="50"/>
+    <rect x="1000" y="0" width="20" height="50"/>
+    <rect x="1300" y="0" width="20" height="50"/>
+    <rect x="1600" y="0" width="20" height="50"/>
+    <rect x="1900" y="0" width="20" height="50"/>
+  </g>
+
+  <!-- Terrace wall (lower portion behind railing) -->
+  <rect x="0" y="520" width="2048" height="80" fill="#c8c0b0" opacity="0.3"/>
+
+  <!-- Railing -->
+  <g>
+    <!-- Top rail -->
+    <rect x="0" y="510" width="2048" height="8" fill="url(#railGrad)" rx="3"/>
+    <!-- Bottom rail -->
+    <rect x="0" y="590" width="2048" height="6" fill="url(#railGrad)" rx="2"/>
+    <!-- Vertical balusters -->
+    <g fill="#a0a8a8">
+      <rect x="50" y="518" width="5" height="72" rx="1"/>
+      <rect x="100" y="518" width="5" height="72" rx="1"/>
+      <rect x="150" y="518" width="5" height="72" rx="1"/>
+      <rect x="200" y="518" width="5" height="72" rx="1"/>
+      <rect x="250" y="518" width="5" height="72" rx="1"/>
+      <rect x="300" y="518" width="5" height="72" rx="1"/>
+      <rect x="350" y="518" width="5" height="72" rx="1"/>
+      <rect x="400" y="518" width="5" height="72" rx="1"/>
+      <rect x="450" y="518" width="5" height="72" rx="1"/>
+      <rect x="500" y="518" width="5" height="72" rx="1"/>
+      <rect x="550" y="518" width="5" height="72" rx="1"/>
+      <rect x="600" y="518" width="5" height="72" rx="1"/>
+      <rect x="650" y="518" width="5" height="72" rx="1"/>
+      <rect x="700" y="518" width="5" height="72" rx="1"/>
+      <rect x="750" y="518" width="5" height="72" rx="1"/>
+      <rect x="800" y="518" width="5" height="72" rx="1"/>
+      <rect x="850" y="518" width="5" height="72" rx="1"/>
+      <rect x="900" y="518" width="5" height="72" rx="1"/>
+      <rect x="950" y="518" width="5" height="72" rx="1"/>
+      <rect x="1000" y="518" width="5" height="72" rx="1"/>
+      <rect x="1050" y="518" width="5" height="72" rx="1"/>
+      <rect x="1100" y="518" width="5" height="72" rx="1"/>
+      <rect x="1150" y="518" width="5" height="72" rx="1"/>
+      <rect x="1200" y="518" width="5" height="72" rx="1"/>
+      <rect x="1250" y="518" width="5" height="72" rx="1"/>
+      <rect x="1300" y="518" width="5" height="72" rx="1"/>
+      <rect x="1350" y="518" width="5" height="72" rx="1"/>
+      <rect x="1400" y="518" width="5" height="72" rx="1"/>
+      <rect x="1450" y="518" width="5" height="72" rx="1"/>
+      <rect x="1500" y="518" width="5" height="72" rx="1"/>
+      <rect x="1550" y="518" width="5" height="72" rx="1"/>
+      <rect x="1600" y="518" width="5" height="72" rx="1"/>
+      <rect x="1650" y="518" width="5" height="72" rx="1"/>
+      <rect x="1700" y="518" width="5" height="72" rx="1"/>
+      <rect x="1750" y="518" width="5" height="72" rx="1"/>
+      <rect x="1800" y="518" width="5" height="72" rx="1"/>
+      <rect x="1850" y="518" width="5" height="72" rx="1"/>
+      <rect x="1900" y="518" width="5" height="72" rx="1"/>
+      <rect x="1950" y="518" width="5" height="72" rx="1"/>
+      <rect x="2000" y="518" width="5" height="72" rx="1"/>
+    </g>
+    <!-- Railing posts (thicker) -->
+    <rect x="0" y="505" width="12" height="95" fill="#808888" rx="2"/>
+    <rect x="340" y="505" width="12" height="95" fill="#808888" rx="2"/>
+    <rect x="680" y="505" width="12" height="95" fill="#808888" rx="2"/>
+    <rect x="1024" y="505" width="12" height="95" fill="#808888" rx="2"/>
+    <rect x="1360" y="505" width="12" height="95" fill="#808888" rx="2"/>
+    <rect x="1700" y="505" width="12" height="95" fill="#808888" rx="2"/>
+    <rect x="2036" y="505" width="12" height="95" fill="#808888" rx="2"/>
+  </g>
+
+  <!-- Deck floor -->
+  <rect x="0" y="600" width="2048" height="424" fill="url(#terFloor)"/>
+  <rect x="0" y="600" width="2048" height="424" fill="url(#deckWood)" opacity="0.5"/>
+
+  <!-- Perspective grid on floor -->
+  <g stroke="#8a7858" stroke-width="0.7" opacity="0.2">
+    <line x1="0" y1="650" x2="2048" y2="650"/>
+    <line x1="0" y1="710" x2="2048" y2="710"/>
+    <line x1="0" y1="780" x2="2048" y2="780"/>
+    <line x1="0" y1="860" x2="2048" y2="860"/>
+    <line x1="0" y1="950" x2="2048" y2="950"/>
+    <line x1="1024" y1="600" x2="0" y2="1024"/>
+    <line x1="1024" y1="600" x2="256" y2="1024"/>
+    <line x1="1024" y1="600" x2="512" y2="1024"/>
+    <line x1="1024" y1="600" x2="768" y2="1024"/>
+    <line x1="1024" y1="600" x2="1024" y2="1024"/>
+    <line x1="1024" y1="600" x2="1280" y2="1024"/>
+    <line x1="1024" y1="600" x2="1536" y2="1024"/>
+    <line x1="1024" y1="600" x2="1792" y2="1024"/>
+    <line x1="1024" y1="600" x2="2048" y2="1024"/>
+  </g>
+
+  <!-- Outdoor table -->
+  <ellipse cx="500" cy="680" rx="80" ry="20" fill="#8a7858" opacity="0.7"/>
+  <rect x="495" y="700" width="10" height="50" fill="#7a6848"/>
+  <!-- Items on table -->
+  <ellipse cx="480" cy="676" rx="15" ry="5" fill="#a0c8e0" opacity="0.5"/>
+  <ellipse cx="520" cy="676" rx="12" ry="4" fill="#e0d0a0" opacity="0.5"/>
+
+  <!-- Chairs -->
+  <g opacity="0.7">
+    <!-- Chair 1 -->
+    <rect x="380" y="660" width="50" height="60" fill="#6a5838" rx="3"/>
+    <rect x="383" y="630" width="44" height="35" fill="#7a6848" rx="3"/>
+    <!-- Chair 2 -->
+    <rect x="560" y="660" width="50" height="60" fill="#6a5838" rx="3"/>
+    <rect x="563" y="630" width="44" height="35" fill="#7a6848" rx="3"/>
+  </g>
+
+  <!-- Lounger -->
+  <g opacity="0.7">
+    <rect x="1400" y="650" width="200" height="30" fill="#7a6848" rx="5"/>
+    <rect x="1390" y="640" width="60" height="45" fill="#7a6848" rx="3" transform="rotate(-20,1420,660)"/>
+    <rect x="1405" y="648" width="185" height="24" fill="#c0d8e0" rx="3" opacity="0.6"/>
+    <!-- Legs -->
+    <rect x="1410" y="680" width="6" height="15" fill="#6a5838"/>
+    <rect x="1580" y="680" width="6" height="15" fill="#6a5838"/>
+  </g>
+
+  <!-- Potted plants -->
+  <g>
+    <!-- Plant 1 -->
+    <rect x="80" y="560" width="50" height="50" fill="#8a5030" rx="3"/>
+    <ellipse cx="105" cy="540" rx="45" ry="40" fill="url(#plantGrad)" opacity="0.8"/>
+    <ellipse cx="95" cy="520" rx="25" ry="30" fill="#5aaa40" opacity="0.6"/>
+    <ellipse cx="115" cy="525" rx="20" ry="28" fill="#4a9a38" opacity="0.5"/>
+
+    <!-- Plant 2 -->
+    <rect x="1860" y="560" width="50" height="50" fill="#8a5030" rx="3"/>
+    <ellipse cx="1885" cy="540" rx="45" ry="40" fill="url(#plantGrad)" opacity="0.8"/>
+    <ellipse cx="1875" cy="520" rx="25" ry="30" fill="#5aaa40" opacity="0.6"/>
+    <ellipse cx="1895" cy="525" rx="20" ry="28" fill="#4a9a38" opacity="0.5"/>
+
+    <!-- Plant 3 (large planter) -->
+    <rect x="750" y="570" width="40" height="40" fill="#7a4528" rx="3"/>
+    <ellipse cx="770" cy="555" rx="35" ry="30" fill="#4a9a30" opacity="0.7"/>
+    <ellipse cx="760" cy="540" rx="20" ry="25" fill="#5aaa40" opacity="0.6"/>
+
+    <!-- Plant 4 -->
+    <rect x="1200" y="570" width="40" height="40" fill="#7a4528" rx="3"/>
+    <ellipse cx="1220" cy="555" rx="35" ry="30" fill="#4a9a30" opacity="0.7"/>
+    <ellipse cx="1230" cy="540" rx="22" ry="27" fill="#5aaa40" opacity="0.6"/>
+  </g>
+
+  <!-- Hanging string lights -->
+  <g opacity="0.5">
+    <path d="M0,60 Q256,80 512,65 Q768,80 1024,60 Q1280,80 1536,65 Q1792,80 2048,60" fill="none" stroke="#4a3828" stroke-width="1.5"/>
+    <circle cx="128" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="256" cy="76" r="5" fill="#ffe860"/>
+    <circle cx="384" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="512" cy="65" r="5" fill="#ffe860"/>
+    <circle cx="640" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="768" cy="76" r="5" fill="#ffe860"/>
+    <circle cx="896" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="1024" cy="60" r="5" fill="#ffe860"/>
+    <circle cx="1152" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="1280" cy="76" r="5" fill="#ffe860"/>
+    <circle cx="1408" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="1536" cy="65" r="5" fill="#ffe860"/>
+    <circle cx="1664" cy="72" r="5" fill="#ffe860"/>
+    <circle cx="1792" cy="76" r="5" fill="#ffe860"/>
+    <circle cx="1920" cy="72" r="5" fill="#ffe860"/>
+  </g>
+
+  <!-- Birds in the sky -->
+  <g stroke="#304060" stroke-width="1.5" fill="none" opacity="0.4">
+    <path d="M600,200 Q610,190 620,200 Q630,190 640,200"/>
+    <path d="M650,180 Q658,172 666,180 Q674,172 682,180"/>
+    <path d="M1100,160 Q1110,150 1120,160 Q1130,150 1140,160"/>
+  </g>
+
+  <!-- Room label -->
+  <text x="1024" y="460" text-anchor="middle" font-family="Georgia, serif" font-size="48" fill="#ffffff" font-weight="bold" letter-spacing="6" opacity="0.85">
+    TERRAZA
+  </text>
+  <text x="1024" y="490" text-anchor="middle" font-family="Georgia, serif" font-size="16" fill="#e0f0e0" letter-spacing="10" opacity="0.65">
+    TERRACE
+  </text>
+</svg>

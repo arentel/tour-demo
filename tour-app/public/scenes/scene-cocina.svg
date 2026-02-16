@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1024" width="2048" height="1024">
+  <defs>
+    <!-- Ceiling gradient -->
+    <linearGradient id="cocCeiling" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a0800"/>
+      <stop offset="100%" stop-color="#2a1508"/>
+    </linearGradient>
+    <!-- Wall gradient -->
+    <linearGradient id="cocWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c85028"/>
+      <stop offset="50%" stop-color="#e06030"/>
+      <stop offset="100%" stop-color="#a84020"/>
+    </linearGradient>
+    <!-- Floor gradient -->
+    <linearGradient id="cocFloor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c8b8a0"/>
+      <stop offset="100%" stop-color="#8a7a60"/>
+    </linearGradient>
+    <!-- Counter gradient -->
+    <linearGradient id="counterGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d8caba"/>
+      <stop offset="100%" stop-color="#a89880"/>
+    </linearGradient>
+    <!-- Cabinet gradient -->
+    <linearGradient id="cabGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6a3818"/>
+      <stop offset="100%" stop-color="#4a2810"/>
+    </linearGradient>
+    <!-- Backsplash tile -->
+    <pattern id="backsplash" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+      <rect width="30" height="30" fill="#e8ddd0"/>
+      <rect x="1" y="1" width="13" height="13" fill="#f0e8dc" rx="1"/>
+      <rect x="16" y="1" width="13" height="13" fill="#ece0d4" rx="1"/>
+      <rect x="1" y="16" width="13" height="13" fill="#ece0d4" rx="1"/>
+      <rect x="16" y="16" width="13" height="13" fill="#f0e8dc" rx="1"/>
+    </pattern>
+    <!-- Floor tile -->
+    <pattern id="floorTile" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <rect width="80" height="80" fill="#b8a888"/>
+      <rect x="1" y="1" width="38" height="38" fill="#c4b498" rx="1"/>
+      <rect x="41" y="1" width="38" height="38" fill="#bca890" rx="1"/>
+      <rect x="1" y="41" width="38" height="38" fill="#bca890" rx="1"/>
+      <rect x="41" y="41" width="38" height="38" fill="#c4b498" rx="1"/>
+    </pattern>
+    <!-- Warm ambient -->
+    <radialGradient id="cocAmb" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ff882222"/>
+      <stop offset="100%" stop-color="#ff882200"/>
+    </radialGradient>
+    <!-- Stove glow -->
+    <radialGradient id="stoveGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff440044"/>
+      <stop offset="100%" stop-color="#ff440000"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Ceiling -->
+  <rect x="0" y="0" width="2048" height="250" fill="url(#cocCeiling)"/>
+  <!-- Ceiling recessed lights -->
+  <circle cx="400" cy="120" r="20" fill="#fff8e0" opacity="0.3"/>
+  <circle cx="800" cy="120" r="20" fill="#fff8e0" opacity="0.3"/>
+  <circle cx="1200" cy="120" r="20" fill="#fff8e0" opacity="0.3"/>
+  <circle cx="1600" cy="120" r="20" fill="#fff8e0" opacity="0.3"/>
+
+  <!-- Walls -->
+  <rect x="0" y="250" width="2048" height="410" fill="url(#cocWall)"/>
+
+  <!-- Backsplash area -->
+  <rect x="50" y="380" width="600" height="120" fill="url(#backsplash)"/>
+  <rect x="1400" y="380" width="600" height="120" fill="url(#backsplash)"/>
+
+  <!-- Ambient overlay -->
+  <rect x="0" y="0" width="2048" height="1024" fill="url(#cocAmb)"/>
+
+  <!-- Floor -->
+  <rect x="0" y="660" width="2048" height="364" fill="url(#cocFloor)"/>
+  <rect x="0" y="660" width="2048" height="364" fill="url(#floorTile)" opacity="0.4"/>
+
+  <!-- Perspective grid on floor -->
+  <g stroke="#8a7860" stroke-width="0.7" opacity="0.2">
+    <line x1="0" y1="700" x2="2048" y2="700"/>
+    <line x1="0" y1="750" x2="2048" y2="750"/>
+    <line x1="0" y1="810" x2="2048" y2="810"/>
+    <line x1="0" y1="880" x2="2048" y2="880"/>
+    <line x1="0" y1="960" x2="2048" y2="960"/>
+    <line x1="1024" y1="660" x2="0" y2="1024"/>
+    <line x1="1024" y1="660" x2="256" y2="1024"/>
+    <line x1="1024" y1="660" x2="512" y2="1024"/>
+    <line x1="1024" y1="660" x2="768" y2="1024"/>
+    <line x1="1024" y1="660" x2="1024" y2="1024"/>
+    <line x1="1024" y1="660" x2="1280" y2="1024"/>
+    <line x1="1024" y1="660" x2="1536" y2="1024"/>
+    <line x1="1024" y1="660" x2="1792" y2="1024"/>
+    <line x1="1024" y1="660" x2="2048" y2="1024"/>
+  </g>
+
+  <!-- Upper cabinets (left wall) -->
+  <g>
+    <rect x="50" y="280" width="140" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="60" y="288" width="55" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <rect x="125" y="288" width="55" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="110" cy="328" r="3" fill="#c8a060"/>
+    <circle cx="130" cy="328" r="3" fill="#c8a060"/>
+
+    <rect x="210" y="280" width="140" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="220" y="288" width="55" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <rect x="285" y="288" width="55" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="270" cy="328" r="3" fill="#c8a060"/>
+    <circle cx="290" cy="328" r="3" fill="#c8a060"/>
+
+    <rect x="370" y="280" width="140" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="380" y="288" width="120" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="440" cy="328" r="3" fill="#c8a060"/>
+
+    <rect x="530" y="280" width="120" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="540" y="288" width="100" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="590" cy="328" r="3" fill="#c8a060"/>
+  </g>
+
+  <!-- Upper cabinets (right wall) -->
+  <g>
+    <rect x="1400" y="280" width="140" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="1410" y="288" width="55" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <rect x="1475" y="288" width="55" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="1460" cy="328" r="3" fill="#c8a060"/>
+    <circle cx="1480" cy="328" r="3" fill="#c8a060"/>
+
+    <rect x="1560" y="280" width="140" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="1570" y="288" width="120" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="1630" cy="328" r="3" fill="#c8a060"/>
+
+    <rect x="1720" y="280" width="140" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="1730" y="288" width="120" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="1790" cy="328" r="3" fill="#c8a060"/>
+
+    <rect x="1880" y="280" width="120" height="95" fill="url(#cabGrad)" rx="3"/>
+    <rect x="1890" y="288" width="100" height="79" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+    <circle cx="1940" cy="328" r="3" fill="#c8a060"/>
+  </g>
+
+  <!-- Counter (left) -->
+  <rect x="50" y="500" width="600" height="20" fill="url(#counterGrad)" rx="2"/>
+  <!-- Lower cabinets (left) -->
+  <rect x="50" y="520" width="600" height="140" fill="url(#cabGrad)" rx="3"/>
+  <rect x="60" y="530" width="130" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <rect x="200" y="530" width="130" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <rect x="340" y="530" width="130" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <rect x="480" y="530" width="160" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <!-- Cabinet handles -->
+  <circle cx="125" cy="590" r="4" fill="#c8a060"/>
+  <circle cx="265" cy="590" r="4" fill="#c8a060"/>
+  <circle cx="405" cy="590" r="4" fill="#c8a060"/>
+  <circle cx="560" cy="590" r="4" fill="#c8a060"/>
+
+  <!-- Counter (right) -->
+  <rect x="1400" y="500" width="600" height="20" fill="url(#counterGrad)" rx="2"/>
+  <!-- Lower cabinets (right) -->
+  <rect x="1400" y="520" width="600" height="140" fill="url(#cabGrad)" rx="3"/>
+  <rect x="1410" y="530" width="130" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <rect x="1550" y="530" width="130" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <rect x="1690" y="530" width="130" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <rect x="1830" y="530" width="160" height="120" fill="none" stroke="#5a3018" stroke-width="2" rx="2"/>
+  <circle cx="1475" cy="590" r="4" fill="#c8a060"/>
+  <circle cx="1615" cy="590" r="4" fill="#c8a060"/>
+  <circle cx="1755" cy="590" r="4" fill="#c8a060"/>
+  <circle cx="1910" cy="590" r="4" fill="#c8a060"/>
+
+  <!-- Sink (left counter) -->
+  <rect x="280" y="496" width="100" height="8" fill="#a0a0a8" rx="2"/>
+  <rect x="290" y="490" width="80" height="6" fill="#b0b0b8" rx="5"/>
+  <!-- Faucet -->
+  <rect x="325" y="470" width="8" height="25" fill="#c0c0c8" rx="2"/>
+  <rect x="318" y="465" width="22" height="6" fill="#c0c0c8" rx="3"/>
+
+  <!-- Stove (right counter) -->
+  <rect x="1550" y="496" width="120" height="8" fill="#303030" rx="1"/>
+  <!-- Burners -->
+  <circle cx="1580" cy="498" r="15" fill="none" stroke="#505050" stroke-width="2"/>
+  <circle cx="1580" cy="498" r="8" fill="none" stroke="#505050" stroke-width="1"/>
+  <circle cx="1640" cy="498" r="15" fill="none" stroke="#505050" stroke-width="2"/>
+  <circle cx="1640" cy="498" r="8" fill="none" stroke="#505050" stroke-width="1"/>
+  <!-- Active burner glow -->
+  <circle cx="1580" cy="498" r="18" fill="url(#stoveGlow)"/>
+
+  <!-- Refrigerator -->
+  <rect x="700" y="330" width="130" height="330" fill="#d0d0d8" rx="5"/>
+  <rect x="700" y="330" width="130" height="200" fill="#c8c8d0" rx="5"/>
+  <line x1="700" y1="530" x2="830" y2="530" stroke="#b0b0b8" stroke-width="2"/>
+  <rect x="820" y="400" width="5" height="50" fill="#a0a0a8" rx="2"/>
+  <rect x="820" y="560" width="5" height="40" fill="#a0a0a8" rx="2"/>
+
+  <!-- Items on counter -->
+  <!-- Cutting board -->
+  <rect x="120" y="490" width="60" height="10" fill="#c8a060" rx="2" opacity="0.7"/>
+  <!-- Bowl -->
+  <ellipse cx="500" cy="494" rx="25" ry="8" fill="#e0d0b0" opacity="0.6"/>
+  <!-- Pot on stove -->
+  <ellipse cx="1580" cy="488" rx="18" ry="6" fill="#606068"/>
+  <rect x="1562" y="478" width="36" height="12" fill="#505058" rx="2"/>
+
+  <!-- Hanging pendant lights -->
+  <g opacity="0.8">
+    <line x1="1024" y1="0" x2="1024" y2="200" stroke="#4a2810" stroke-width="2"/>
+    <polygon points="1000,200 1048,200 1038,175 1010,175" fill="#e8d8b0" opacity="0.8"/>
+    <circle cx="1024" cy="195" r="8" fill="#fff8e0" opacity="0.6"/>
+    
+    <line x1="924" y1="0" x2="924" y2="220" stroke="#4a2810" stroke-width="2"/>
+    <polygon points="900,220 948,220 938,195 910,195" fill="#e8d8b0" opacity="0.8"/>
+    <circle cx="924" cy="215" r="8" fill="#fff8e0" opacity="0.6"/>
+    
+    <line x1="1124" y1="0" x2="1124" y2="220" stroke="#4a2810" stroke-width="2"/>
+    <polygon points="1100,220 1148,220 1138,195 1110,195" fill="#e8d8b0" opacity="0.8"/>
+    <circle cx="1124" cy="215" r="8" fill="#fff8e0" opacity="0.6"/>
+  </g>
+
+  <!-- Island counter (center) -->
+  <rect x="880" y="580" width="280" height="80" fill="url(#cabGrad)" rx="4"/>
+  <rect x="875" y="575" width="290" height="10" fill="url(#counterGrad)" rx="2"/>
+
+  <!-- Room label -->
+  <text x="1024" y="460" text-anchor="middle" font-family="Georgia, serif" font-size="44" fill="#ffe0c0" font-weight="bold" letter-spacing="6" opacity="0.9">
+    COCINA
+  </text>
+  <text x="1024" y="490" text-anchor="middle" font-family="Georgia, serif" font-size="16" fill="#e0b898" letter-spacing="10" opacity="0.6">
+    KITCHEN
+  </text>
+</svg>
