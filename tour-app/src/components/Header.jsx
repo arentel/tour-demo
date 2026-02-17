@@ -87,17 +87,47 @@ export default function Header() {
         </button>
       </header>
 
-      {/* Menu overlay */}
+      {/* Menu overlay with progressive edge blur */}
       <div
-        className={`fixed inset-0 z-40 transition-all duration-500 ${
+        className={`fixed inset-0 z-40 transition-opacity duration-700 ease-out ${
           isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
-        {/* Blurred background */}
+        {/* Layer 1: Edge gradients - dark from all edges, transparent center */}
         <div
-          className={`absolute inset-0 bg-black/60 backdrop-blur-lg transition-all duration-500 ${
-            isMenuOpen ? 'backdrop-blur-lg' : 'backdrop-blur-none'
-          }`}
+          className="absolute inset-0 transition-opacity duration-500 ease-out"
+          style={{
+            opacity: isMenuOpen ? 1 : 0,
+            background: `
+              linear-gradient(to right, rgba(0,0,0,0.85) 0%, transparent 50%),
+              linear-gradient(to left, rgba(0,0,0,0.6) 0%, transparent 40%),
+              linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 40%),
+              linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%)
+            `,
+            transitionDelay: '0ms',
+          }}
+          onClick={() => setIsMenuOpen(false)}
+        />
+
+        {/* Layer 2: Center backdrop blur that fades in slightly after edges */}
+        <div
+          className="absolute inset-0 transition-all duration-700 ease-out"
+          style={{
+            backdropFilter: isMenuOpen ? 'blur(12px)' : 'blur(0px)',
+            WebkitBackdropFilter: isMenuOpen ? 'blur(12px)' : 'blur(0px)',
+            transitionDelay: '100ms',
+          }}
+          onClick={() => setIsMenuOpen(false)}
+        />
+
+        {/* Layer 3: Radial vignette overlay for depth */}
+        <div
+          className="absolute inset-0 transition-opacity duration-600 ease-out"
+          style={{
+            opacity: isMenuOpen ? 1 : 0,
+            background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)',
+            transitionDelay: '150ms',
+          }}
           onClick={() => setIsMenuOpen(false)}
         />
 

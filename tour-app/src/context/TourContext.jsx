@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { loadTourData, saveTourData, resetTourData } from '../data/tourData';
 
-const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin' };
+const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
 
 const TourContext = createContext(null);
 

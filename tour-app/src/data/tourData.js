@@ -3,7 +3,7 @@ const defaultTourData = {
     {
       id: 'lobby',
       name: 'Lobby',
-      image: '/scenes/scene-lobby.svg',
+      image: '/scenes/scene-lobby.jpg',
       hotspots: [
         {
           id: 'hs-lobby-1',
@@ -31,7 +31,7 @@ const defaultTourData = {
     {
       id: 'salon',
       name: 'Salón',
-      image: '/scenes/scene-salon.svg',
+      image: '/scenes/scene-salon.jpg',
       hotspots: [
         {
           id: 'hs-salon-1',
@@ -59,7 +59,7 @@ const defaultTourData = {
     {
       id: 'cocina',
       name: 'Cocina',
-      image: '/scenes/scene-cocina.svg',
+      image: '/scenes/scene-cocina.jpg',
       hotspots: [
         {
           id: 'hs-cocina-1',
@@ -87,7 +87,7 @@ const defaultTourData = {
     {
       id: 'dormitorio',
       name: 'Dormitorio',
-      image: '/scenes/scene-dormitorio.svg',
+      image: '/scenes/scene-dormitorio.jpg',
       hotspots: [
         {
           id: 'hs-dorm-1',
@@ -115,7 +115,7 @@ const defaultTourData = {
     {
       id: 'terraza',
       name: 'Terraza',
-      image: '/scenes/scene-terraza.svg',
+      image: '/scenes/scene-terraza.jpg',
       hotspots: [
         {
           id: 'hs-terraza-1',

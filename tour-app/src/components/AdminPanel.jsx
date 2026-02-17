@@ -35,7 +35,7 @@ export default function AdminPanel() {
     addScene({
       id,
       name: newSceneName,
-      image: newSceneImage || '/scenes/scene-lobby.svg',
+      image: newSceneImage || '/scenes/scene-lobby.jpg',
       hotspots: [],
     });
     setNewSceneName('');
