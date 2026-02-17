@@ -90,22 +90,25 @@ export default function Hotspot({ hotspot }) {
           />
         </div>
 
-        {/* Label */}
+        {/* Label – centered across full pill width */}
         <span
-          ref={labelRef}
-          className="whitespace-nowrap flex items-center"
+          className="absolute inset-0 whitespace-nowrap flex items-center justify-center pointer-events-none"
           style={{
-            color: 'rgba(255,255,255,0.95)',
-            fontSize: '13px',
-            fontWeight: 300,
-            letterSpacing: '0.04em',
-            height: 40,
             opacity: hovered ? 1 : 0,
-            transform: hovered ? 'translate(0, -1px)' : 'translate(-8px, -1px)',
-            transition: 'opacity 0.35s ease 0.1s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s',
+            transition: 'opacity 0.35s ease 0.1s',
           }}
         >
-          {hotspot.name}
+          <span
+            ref={labelRef}
+            style={{
+              color: 'rgba(255,255,255,0.95)',
+              fontSize: '13px',
+              fontWeight: 300,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {hotspot.name}
+          </span>
         </span>
       </div>
     </div>
