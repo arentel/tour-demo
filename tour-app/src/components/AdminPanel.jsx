@@ -75,7 +75,9 @@ export default function AdminPanel() {
     reader.readAsDataURL(file);
   };
 
-  if (!isAdminOpen) return null;
+  const { isAdminAuthenticated, logoutAdmin } = useTour();
+
+  if (!isAdminOpen || !isAdminAuthenticated) return null;
 
   return (
     <div className="fixed top-16 right-0 bottom-0 w-96 z-30 flex flex-col bg-[#0d0d1a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl">
@@ -85,12 +87,14 @@ export default function AdminPanel() {
           Panel de Administrador
         </h2>
         <button
-          onClick={() => setIsAdminOpen(false)}
-          className="text-white/50 hover:text-white transition-colors"
+          onClick={logoutAdmin}
+          className="text-white/50 hover:text-white transition-colors flex items-center gap-1.5 text-xs"
+          title="Cerrar sesión"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 6L6 18M6 6l12 12" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
           </svg>
+          Salir
         </button>
       </div>
 

@@ -49,7 +49,7 @@ export default function PanoramaViewer() {
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       setOffsetX(dragStartOffsetX + dx);
-      setOffsetY(Math.max(-200, Math.min(200, dragStartOffsetY + dy)));
+      setOffsetY(Math.max(-300, Math.min(300, dragStartOffsetY + dy)));
     },
     [isDragging, startX, startY, dragStartOffsetX, dragStartOffsetY]
   );
@@ -60,7 +60,7 @@ export default function PanoramaViewer() {
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    setZoom((prev) => Math.max(0.5, Math.min(3, prev - e.deltaY * 0.001)));
+    setZoom((prev) => Math.max(1, Math.min(3, prev - e.deltaY * 0.002)));
   }, []);
 
   // Touch support
@@ -83,7 +83,7 @@ export default function PanoramaViewer() {
       const dx = touch.clientX - startX;
       const dy = touch.clientY - startY;
       setOffsetX(dragStartOffsetX + dx);
-      setOffsetY(Math.max(-200, Math.min(200, dragStartOffsetY + dy)));
+      setOffsetY(Math.max(-300, Math.min(300, dragStartOffsetY + dy)));
     },
     [isDragging, startX, startY, dragStartOffsetX, dragStartOffsetY]
   );
@@ -121,27 +121,21 @@ export default function PanoramaViewer() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Panoramic image - repeating for seamless scroll */}
+      {/* Scene image - 2D with drag & zoom */}
       <div
-        className="absolute inset-0 flex select-none"
+        className="absolute inset-0 select-none"
         style={{
-          transform: `scale(${zoom})`,
+          transform: `scale(${zoom}) translate(${offsetX / zoom}px, ${offsetY / zoom}px)`,
           transformOrigin: 'center center',
+          transition: isDragging ? 'none' : 'transform 0.15s ease-out',
         }}
       >
-        {[-1, 0, 1].map((copy) => (
-          <img
-            key={copy}
-            src={displayScene.image}
-            alt={displayScene.name}
-            className="h-full object-cover select-none pointer-events-none"
-            style={{
-              minWidth: '100vw',
-              transform: `translate(${offsetX + copy * window.innerWidth}px, ${offsetY}px)`,
-            }}
-            draggable={false}
-          />
-        ))}
+        <img
+          src={displayScene.image}
+          alt={displayScene.name}
+          className="w-full h-full object-cover select-none pointer-events-none"
+          draggable={false}
+        />
       </div>
 
       {/* Hotspots */}

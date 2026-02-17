@@ -2,6 +2,7 @@ import { TourProvider } from './context/TourContext';
 import Header from './components/Header';
 import PanoramaViewer from './components/PanoramaViewer';
 import AdminPanel from './components/AdminPanel';
+import AdminLogin from './components/AdminLogin';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <PanoramaViewer />
         <Header />
         <AdminPanel />
+        <AdminLogin />
       </div>
     </TourProvider>
   );

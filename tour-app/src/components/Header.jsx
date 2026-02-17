@@ -7,9 +7,30 @@ export default function Header() {
     tourData,
     navigateToScene,
     currentSceneId,
-    setIsAdminOpen,
+    isAdminAuthenticated,
     isAdminOpen,
+    setIsAdminOpen,
+    setShowLoginModal,
+    logoutAdmin,
   } = useTour();
+
+  const handleAdminClick = () => {
+    if (isAdminAuthenticated) {
+      if (isAdminOpen) {
+        logoutAdmin();
+      } else {
+        setIsAdminOpen(true);
+      }
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+
+  const getAdminLabel = () => {
+    if (!isAdminAuthenticated) return 'ADMIN';
+    if (isAdminOpen) return 'CERRAR SESIÓN';
+    return 'ADMIN';
+  };
 
   return (
     <>
@@ -52,10 +73,17 @@ export default function Header() {
 
         {/* Admin button */}
         <button
-          onClick={() => setIsAdminOpen(!isAdminOpen)}
-          className="relative z-10 ml-auto text-white/70 hover:text-white transition-colors duration-200 text-sm font-medium tracking-wide"
+          onClick={handleAdminClick}
+          className={`relative z-10 ml-auto flex items-center gap-2 transition-colors duration-200 text-sm font-medium tracking-wide ${
+            isAdminAuthenticated
+              ? 'text-blue-400 hover:text-blue-300'
+              : 'text-white/70 hover:text-white'
+          }`}
         >
-          {isAdminOpen ? 'CERRAR ADMIN' : 'ADMIN'}
+          {isAdminAuthenticated && (
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          )}
+          {getAdminLabel()}
         </button>
       </header>
 

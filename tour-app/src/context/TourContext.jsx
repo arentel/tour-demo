@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { loadTourData, saveTourData, resetTourData } from '../data/tourData';
 
+const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin' };
+
 const TourContext = createContext(null);
 
 export function TourProvider({ children }) {
@@ -8,8 +10,28 @@ export function TourProvider({ children }) {
   const [currentSceneId, setCurrentSceneId] = useState(tourData.startScene);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const currentScene = tourData.scenes.find((s) => s.id === currentSceneId);
+
+  const loginAdmin = useCallback((username, password) => {
+    if (
+      username === ADMIN_CREDENTIALS.username &&
+      password === ADMIN_CREDENTIALS.password
+    ) {
+      setIsAdminAuthenticated(true);
+      setShowLoginModal(false);
+      setIsAdminOpen(true);
+      return true;
+    }
+    return false;
+  }, []);
+
+  const logoutAdmin = useCallback(() => {
+    setIsAdminAuthenticated(false);
+    setIsAdminOpen(false);
+  }, []);
 
   const navigateToScene = useCallback(
     (sceneId) => {
@@ -40,7 +62,6 @@ export function TourProvider({ children }) {
   const removeScene = useCallback(
     (sceneId) => {
       const newScenes = tourData.scenes.filter((s) => s.id !== sceneId);
-      // Remove hotspots targeting deleted scene
       const cleanedScenes = newScenes.map((scene) => ({
         ...scene,
         hotspots: scene.hotspots.map((hs) =>
@@ -125,9 +146,14 @@ export function TourProvider({ children }) {
         currentSceneId,
         isMenuOpen,
         isAdminOpen,
+        isAdminAuthenticated,
+        showLoginModal,
         setIsMenuOpen,
         setIsAdminOpen,
+        setShowLoginModal,
         navigateToScene,
+        loginAdmin,
+        logoutAdmin,
         addScene,
         removeScene,
         updateScene,
