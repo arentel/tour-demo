@@ -3,30 +3,28 @@ import { useTour } from '../context/TourContext';
 
 export default function AdminLogin() {
   const { showLoginModal, setShowLoginModal, loginAdmin } = useTour();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!showLoginModal) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const success = loginAdmin(username, password);
-      if (!success) {
-        setError('Credenciales incorrectas');
-      }
-      setLoading(false);
-    }, 600);
+    const success = await loginAdmin(email, password);
+    if (!success) {
+      setError('Credenciales incorrectas');
+    }
+    setLoading(false);
   };
 
   const handleClose = () => {
     setShowLoginModal(false);
-    setUsername('');
+    setEmail('');
     setPassword('');
     setError('');
   };
@@ -96,16 +94,16 @@ export default function AdminLogin() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="text-white/35 text-[10px] tracking-[0.15em] uppercase block mb-2 ml-1 font-light">
-                Usuario
+                Email
               </label>
               <input
-                type="text"
-                value={username}
+                type="email"
+                value={email}
                 onChange={(e) => {
-                  setUsername(e.target.value);
+                  setEmail(e.target.value);
                   setError('');
                 }}
-                placeholder="admin"
+                placeholder="admin@example.com"
                 autoFocus
                 className="w-full rounded-lg px-4 py-3 text-white/90 text-sm font-light focus:outline-none transition-all"
                 style={{
@@ -161,7 +159,7 @@ export default function AdminLogin() {
 
             <button
               type="submit"
-              disabled={loading || !username || !password}
+              disabled={loading || !email || !password}
               className="w-full py-3 rounded-lg text-sm font-light tracking-wide transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-1"
               style={{
                 background: 'rgba(255,255,255,0.9)',
@@ -187,10 +185,6 @@ export default function AdminLogin() {
               )}
             </button>
           </form>
-
-          <p className="text-white/15 text-[10px] text-center mt-8 tracking-wider font-light">
-            Demo: admin / admin123
-          </p>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ export default function AdminPanel() {
     addHotspot,
     removeHotspot,
     updateHotspot,
+    uploadImage,
     resetData,
     isAdminAuthenticated,
     logoutAdmin,
@@ -108,41 +109,67 @@ export default function AdminPanel() {
     setNewHotspotTarget('');
   };
 
-  const handleImageUpload = (sceneId, e) => {
+  const [uploading, setUploading] = useState(false);
+  const newSceneFileRef = useRef(null); // store the File for new scene upload
+
+  const handleImageUpload = async (sceneId, e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      updateScene(sceneId, { image: ev.target.result });
-    };
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const url = await uploadImage(sceneId, file);
+      updateScene(sceneId, { image: url });
+    } catch (err) {
+      console.error('Upload failed:', err);
+      // Fallback to data URL
+      const reader = new FileReader();
+      reader.onload = (ev) => updateScene(sceneId, { image: ev.target.result });
+      reader.readAsDataURL(file);
+    }
+    setUploading(false);
   };
 
   const handleNewSceneImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    newSceneFileRef.current = file;
+    // Show a preview via data URL
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      setNewSceneImage(ev.target.result);
-    };
+    reader.onload = (ev) => setNewSceneImage(ev.target.result);
     reader.readAsDataURL(file);
   };
 
-  const handleAddScene = () => {
+  const handleAddScene = async () => {
     if (!newSceneName.trim()) return;
     const id = newSceneName
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
+
+    let imageUrl = newSceneImage || '/scenes/scene-lobby.jpg';
+
+    // Upload to Firebase Storage if a file was selected
+    if (newSceneFileRef.current) {
+      setUploading(true);
+      try {
+        imageUrl = await uploadImage(id, newSceneFileRef.current);
+      } catch (err) {
+        console.error('New scene upload failed:', err);
+        // Keep the data URL preview as fallback
+      }
+      setUploading(false);
+    }
+
     addScene({
       id,
       name: newSceneName,
-      image: newSceneImage || '/scenes/scene-lobby.jpg',
+      image: imageUrl,
       hotspots: [],
     });
     setSelectedSceneId(id);
     setNewSceneName('');
     setNewSceneImage('');
+    newSceneFileRef.current = null;
     setShowAddScene(false);
   };
 
@@ -368,8 +395,8 @@ export default function AdminPanel() {
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
                 </svg>
-                Cambiar imagen
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(selectedSceneId, e)} />
+                {uploading ? 'Subiendo...' : 'Cambiar imagen'}
+                <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => handleImageUpload(selectedSceneId, e)} />
               </label>
               {/* Edit scene name */}
               <input

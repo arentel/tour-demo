@@ -1,38 +1,78 @@
-import { createContext, useContext, useState, useCallback } from 'react';
-import { loadTourData, saveTourData, resetTourData } from '../data/tourData';
-
-const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import { loadTourData as loadLocal, saveTourData as saveLocal, resetTourData as resetLocal } from '../data/tourData';
+import {
+  loadTourDataFromFirestore,
+  saveTourDataToFirestore,
+  resetTourDataInFirestore,
+  uploadSceneImage,
+  deleteSceneImage,
+} from '../services/firebaseService';
 
 const TourContext = createContext(null);
 
 export function TourProvider({ children }) {
-  const [tourData, setTourData] = useState(loadTourData);
+  const [tourData, setTourData] = useState(loadLocal);
   const [currentSceneId, setCurrentSceneId] = useState(tourData.startScene);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [firebaseReady, setFirebaseReady] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const currentScene = tourData.scenes.find((s) => s.id === currentSceneId);
 
-  const loginAdmin = useCallback((username, password) => {
-    if (
-      username === ADMIN_CREDENTIALS.username &&
-      password === ADMIN_CREDENTIALS.password
-    ) {
-      setIsAdminAuthenticated(true);
-      setShowLoginModal(false);
-      setIsAdminOpen(true);
-      return true;
-    }
-    return false;
+  // Listen to Firebase auth state
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setIsAdminAuthenticated(!!user);
+      if (user) {
+        setShowLoginModal(false);
+        setIsAdminOpen(true);
+      }
+      setAuthLoading(false);
+    });
+    return unsub;
   }, []);
 
-  const logoutAdmin = useCallback(() => {
-    setIsAdminAuthenticated(false);
+  // Load data from Firestore on mount
+  useEffect(() => {
+    let cancelled = false;
+    loadTourDataFromFirestore()
+      .then((data) => {
+        if (!cancelled) {
+          setTourData(data);
+          setCurrentSceneId(data.startScene);
+          setFirebaseReady(true);
+          // Keep localStorage in sync as fallback
+          saveLocal(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Firestore load failed, using local data:', err);
+        if (!cancelled) setFirebaseReady(true);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // --- Auth ---
+  const loginAdmin = useCallback(async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const logoutAdmin = useCallback(async () => {
+    await signOut(auth);
     setIsAdminOpen(false);
   }, []);
 
+  // --- Navigation ---
   const navigateToScene = useCallback(
     (sceneId) => {
       if (tourData.scenes.find((s) => s.id === sceneId)) {
@@ -43,11 +83,17 @@ export function TourProvider({ children }) {
     [tourData.scenes]
   );
 
+  // --- Data persistence (Firestore + localStorage fallback) ---
   const updateTourData = useCallback((newData) => {
     setTourData(newData);
-    saveTourData(newData);
+    saveLocal(newData);
+    // Async save to Firestore (fire-and-forget, errors logged)
+    saveTourDataToFirestore(newData).catch((err) =>
+      console.error('Firestore save error:', err)
+    );
   }, []);
 
+  // --- Scene CRUD ---
   const addScene = useCallback(
     (scene) => {
       const newData = {
@@ -80,6 +126,8 @@ export function TourProvider({ children }) {
         setCurrentSceneId(cleanedScenes[0]?.id || '');
       }
       updateTourData(newData);
+      // Clean up the image in Storage
+      deleteSceneImage(sceneId).catch(() => {});
     },
     [tourData, currentSceneId, updateTourData]
   );
@@ -97,6 +145,7 @@ export function TourProvider({ children }) {
     [tourData, updateTourData]
   );
 
+  // --- Hotspot CRUD ---
   const addHotspot = useCallback(
     (sceneId, hotspot) => {
       const scene = tourData.scenes.find((s) => s.id === sceneId);
@@ -132,10 +181,26 @@ export function TourProvider({ children }) {
     [tourData.scenes, updateScene]
   );
 
-  const resetData = useCallback(() => {
-    const data = resetTourData();
-    setTourData(data);
-    setCurrentSceneId(data.startScene);
+  // --- Image upload to Firebase Storage ---
+  const uploadImage = useCallback(async (sceneId, file) => {
+    const url = await uploadSceneImage(sceneId, file);
+    return url;
+  }, []);
+
+  // --- Reset ---
+  const resetData = useCallback(async () => {
+    try {
+      const data = await resetTourDataInFirestore();
+      setTourData(data);
+      setCurrentSceneId(data.startScene);
+      saveLocal(data);
+    } catch (err) {
+      console.error('Firestore reset error:', err);
+      // Fallback to local reset
+      const data = resetLocal();
+      setTourData(data);
+      setCurrentSceneId(data.startScene);
+    }
   }, []);
 
   return (
@@ -148,6 +213,8 @@ export function TourProvider({ children }) {
         isAdminOpen,
         isAdminAuthenticated,
         showLoginModal,
+        firebaseReady,
+        authLoading,
         setIsMenuOpen,
         setIsAdminOpen,
         setShowLoginModal,
@@ -160,6 +227,7 @@ export function TourProvider({ children }) {
         addHotspot,
         removeHotspot,
         updateHotspot,
+        uploadImage,
         resetData,
       }}
     >
