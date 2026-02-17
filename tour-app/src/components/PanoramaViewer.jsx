@@ -7,34 +7,24 @@ export default function PanoramaViewer() {
   const [transitioning, setTransitioning] = useState(false);
   const [displayScene, setDisplayScene] = useState(currentScene);
 
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  // Horizontal pan state (pixels, 0 = center)
-  const [panX, setPanX] = useState(0);
-  const panXRef = useRef(0);
+  // Mobile pan via object-position (percentage offset from center, -50 to 50)
+  const [panPct, setPanPct] = useState(0);
+  const panPctRef = useRef(0);
   const touchRef = useRef(null);
 
   // Active hotspot for mobile double-tap
   const [activeHotspotId, setActiveHotspotId] = useState(null);
 
-  // Keep panXRef in sync
-  const updatePanX = useCallback((val) => {
-    panXRef.current = val;
-    setPanX(val);
+  const updatePan = useCallback((val) => {
+    panPctRef.current = val;
+    setPanPct(val);
   }, []);
 
   // Scene transition
   useEffect(() => {
     if (currentScene?.id !== displayScene?.id) {
       setTransitioning(true);
-      updatePanX(0);
+      updatePan(0);
       setActiveHotspotId(null);
       const timer = setTimeout(() => {
         setDisplayScene(currentScene);
@@ -44,39 +34,31 @@ export default function PanoramaViewer() {
     } else if (currentScene) {
       setDisplayScene(currentScene);
     }
-  }, [currentScene, displayScene, updatePanX]);
-
-  // Max pan: 25% of viewport width (the overflow of the 150% inner container)
-  const maxPanRef = useRef(0);
-  useEffect(() => {
-    maxPanRef.current = isMobile ? window.innerWidth * 0.25 : 0;
-  }, [isMobile]);
+  }, [currentScene, displayScene, updatePan]);
 
   const handleTouchStart = useCallback((e) => {
-    // Don't start pan if touching a hotspot
     if (e.target.closest('[data-hotspot]')) return;
     touchRef.current = {
       startX: e.touches[0].clientX,
-      startPan: panXRef.current,
+      startPan: panPctRef.current,
       moved: false,
     };
   }, []);
 
   const handleTouchMove = useCallback((e) => {
     if (!touchRef.current) return;
-    const delta = e.touches[0].clientX - touchRef.current.startX;
-    if (Math.abs(delta) > 8) {
+    const deltaX = e.touches[0].clientX - touchRef.current.startX;
+    if (Math.abs(deltaX) > 8) {
       touchRef.current.moved = true;
       setActiveHotspotId(null);
     }
-    const max = maxPanRef.current;
-    const newPan = Math.max(-max, Math.min(max, touchRef.current.startPan + delta));
-    updatePanX(newPan);
-  }, [updatePanX]);
+    const deltaPct = (deltaX / window.innerWidth) * 60;
+    const newPct = Math.max(-50, Math.min(50, touchRef.current.startPan + deltaPct));
+    updatePan(newPct);
+  }, [updatePan]);
 
   const handleTouchEnd = useCallback(() => {
     if (!touchRef.current) return;
-    // Tap on background (no swipe) collapses active hotspot
     if (!touchRef.current.moved) {
       setActiveHotspotId(null);
     }
@@ -99,36 +81,26 @@ export default function PanoramaViewer() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ touchAction: isMobile ? 'none' : 'auto' }}
+      style={{ touchAction: 'none' }}
     >
-      {/* Inner container — 150% wide on mobile for horizontal pan */}
-      <div
-        style={{
-          position: 'absolute',
-          width: isMobile ? '150%' : '100%',
-          height: '100%',
-          left: isMobile ? '-25%' : '0',
-          transform: isMobile ? `translateX(${panX}px)` : 'none',
-          willChange: isMobile ? 'transform' : 'auto',
-        }}
-      >
-        <img
-          src={displayScene.image}
-          alt={displayScene.name}
-          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
-          draggable={false}
-        />
+      {/* Scene image — panned via object-position on touch */}
+      <img
+        src={displayScene.image}
+        alt={displayScene.name}
+        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+        style={{ objectPosition: `${50 - panPct}% 50%` }}
+        draggable={false}
+      />
 
-        {/* Hotspots */}
-        {displayScene.hotspots.map((hotspot) => (
-          <Hotspot
-            key={hotspot.id}
-            hotspot={hotspot}
-            isActive={activeHotspotId === hotspot.id}
-            onActivate={setActiveHotspotId}
-          />
-        ))}
-      </div>
+      {/* Hotspots — always positioned relative to viewport */}
+      {displayScene.hotspots.map((hotspot) => (
+        <Hotspot
+          key={hotspot.id}
+          hotspot={hotspot}
+          isActive={activeHotspotId === hotspot.id}
+          onActivate={setActiveHotspotId}
+        />
+      ))}
     </div>
   );
 }
