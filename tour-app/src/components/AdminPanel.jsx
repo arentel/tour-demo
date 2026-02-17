@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTour } from '../context/TourContext';
 
 export default function AdminPanel() {
@@ -28,9 +28,67 @@ export default function AdminPanel() {
   const [newSceneImage, setNewSceneImage] = useState('');
   const imageRef = useRef(null);
 
+  // Drag state
+  const dragRef = useRef(null); // { hotspotId, startX, startY, moved }
+  const [dragPos, setDragPos] = useState(null); // { id, x, y } - live position while dragging
+
+  const handleDragStart = (e, hotspotId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragRef.current = {
+      hotspotId,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+    };
+  };
+
+  const handleDragMove = useCallback((e) => {
+    if (!dragRef.current || !imageRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (!dragRef.current.moved && Math.abs(dx) + Math.abs(dy) > 4) {
+      dragRef.current.moved = true;
+    }
+    if (dragRef.current.moved) {
+      const rect = imageRef.current.getBoundingClientRect();
+      const x = Math.min(100, Math.max(0, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+      const y = Math.min(100, Math.max(0, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
+      setDragPos({ id: dragRef.current.hotspotId, x, y });
+    }
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    if (!dragRef.current) return;
+    if (dragRef.current.moved && dragPos) {
+      updateHotspot(selectedSceneId, dragPos.id, { x: dragPos.x, y: dragPos.y });
+    }
+    if (!dragRef.current.moved) {
+      // It was a click, not a drag - toggle editing
+      const id = dragRef.current.hotspotId;
+      setEditingHotspot((prev) => (prev === id ? null : id));
+    }
+    dragRef.current = null;
+    setDragPos(null);
+  }, [dragPos, selectedSceneId, updateHotspot]);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('mouseup', handleDragEnd);
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [handleDragMove, handleDragEnd]);
+
   if (!isAdminOpen || !isAdminAuthenticated) return null;
 
   const selectedScene = tourData.scenes.find((s) => s.id === selectedSceneId);
+
+  const getHotspotPos = (hs) => {
+    if (dragPos && dragPos.id === hs.id) return { x: dragPos.x, y: dragPos.y };
+    return { x: hs.x, y: hs.y };
+  };
 
   const handleImageClick = (e) => {
     if (!placingHotspot || !selectedScene) return;
@@ -368,50 +426,62 @@ export default function AdminPanel() {
                     draggable={false}
                   />
                   {/* Render hotspots on image */}
-                  {selectedScene.hotspots.map((hs) => (
-                    <div
-                      key={hs.id}
-                      className="absolute group"
-                      style={{
-                        left: `${hs.x}%`,
-                        top: `${hs.y}%`,
-                        transform: 'translate(-50%, -50%)',
-                      }}
-                    >
+                  {selectedScene.hotspots.map((hs) => {
+                    const pos = getHotspotPos(hs);
+                    const isDragging = dragPos && dragPos.id === hs.id;
+                    return (
                       <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition-all"
+                        key={hs.id}
+                        className="absolute group"
                         style={{
-                          background: editingHotspot === hs.id ? '#111' : 'rgba(0,0,0,0.6)',
-                          border: editingHotspot === hs.id ? '2px solid #fff' : '2px solid rgba(255,255,255,0.8)',
-                          boxShadow: editingHotspot === hs.id
-                            ? '0 0 0 3px #111, 0 2px 8px rgba(0,0,0,0.3)'
-                            : '0 2px 8px rgba(0,0,0,0.3)',
+                          left: `${pos.x}%`,
+                          top: `${pos.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          zIndex: isDragging ? 50 : editingHotspot === hs.id ? 40 : 10,
                         }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingHotspot(editingHotspot === hs.id ? null : hs.id);
-                        }}
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                      </div>
-                      {/* Tooltip */}
-                      <div
-                        className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                        style={{ whiteSpace: 'nowrap' }}
                       >
                         <div
-                          className="px-2.5 py-1 rounded-md text-[11px] font-medium"
+                          className="w-6 h-6 rounded-full flex items-center justify-center transition-all"
                           style={{
-                            background: '#111',
-                            color: '#fff',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                            background: isDragging ? '#333' : editingHotspot === hs.id ? '#111' : 'rgba(0,0,0,0.6)',
+                            border: editingHotspot === hs.id || isDragging ? '2px solid #fff' : '2px solid rgba(255,255,255,0.8)',
+                            boxShadow: isDragging
+                              ? '0 0 0 4px rgba(17,17,17,0.4), 0 4px 12px rgba(0,0,0,0.4)'
+                              : editingHotspot === hs.id
+                                ? '0 0 0 3px #111, 0 2px 8px rgba(0,0,0,0.3)'
+                                : '0 2px 8px rgba(0,0,0,0.3)',
+                            cursor: placingHotspot ? 'crosshair' : 'grab',
+                            transform: isDragging ? 'scale(1.2)' : 'scale(1)',
+                          }}
+                          onMouseDown={(e) => {
+                            if (placingHotspot) return;
+                            handleDragStart(e, hs.id);
                           }}
                         >
-                          {hs.name}
+                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                        </div>
+                        {/* Tooltip */}
+                        <div
+                          className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 transition-opacity pointer-events-none"
+                          style={{
+                            whiteSpace: 'nowrap',
+                            opacity: isDragging ? 1 : undefined,
+                          }}
+                        >
+                          <div
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-medium ${isDragging ? '' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
+                            style={{
+                              background: '#111',
+                              color: '#fff',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                            }}
+                          >
+                            {isDragging ? `${pos.x}%, ${pos.y}%` : hs.name}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {/* Placing mode overlay */}
                   {placingHotspot && (
                     <div
