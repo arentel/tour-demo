@@ -93,13 +93,13 @@ export default function Hotspot({ hotspot }) {
         {/* Label */}
         <span
           ref={labelRef}
-          className="whitespace-nowrap"
+          className="whitespace-nowrap flex items-center"
           style={{
             color: 'rgba(255,255,255,0.95)',
             fontSize: '13px',
             fontWeight: 300,
             letterSpacing: '0.04em',
-            lineHeight: '40px',
+            height: 40,
             opacity: hovered ? 1 : 0,
             transform: hovered ? 'translateX(0)' : 'translateX(-8px)',
             transition: 'opacity 0.35s ease 0.1s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s',
