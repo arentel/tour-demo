@@ -101,7 +101,7 @@ export default function Hotspot({ hotspot }) {
             letterSpacing: '0.04em',
             height: 40,
             opacity: hovered ? 1 : 0,
-            transform: hovered ? 'translateX(0)' : 'translateX(-8px)',
+            transform: hovered ? 'translate(0, -1px)' : 'translate(-8px, -1px)',
             transition: 'opacity 0.35s ease 0.1s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s',
           }}
         >
