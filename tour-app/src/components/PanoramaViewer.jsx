@@ -9,12 +9,16 @@ export default function PanoramaViewer() {
 
   useEffect(() => {
     if (currentScene?.id !== displayScene?.id) {
+      // Scene changed — animate transition
       setTransitioning(true);
       const timer = setTimeout(() => {
         setDisplayScene(currentScene);
         setTimeout(() => setTransitioning(false), 50);
       }, 400);
       return () => clearTimeout(timer);
+    } else if (currentScene) {
+      // Same scene but data changed (e.g. hotspot positions) — update without transition
+      setDisplayScene(currentScene);
     }
   }, [currentScene, displayScene]);
 
@@ -45,25 +49,6 @@ export default function PanoramaViewer() {
         <Hotspot key={hotspot.id} hotspot={hotspot} />
       ))}
 
-      {/* Scene indicator - minimal elegant pill */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-        <div
-          className="px-6 py-2 rounded-full"
-          style={{
-            background: 'rgba(0,0,0,0.35)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
-        >
-          <span
-            className="text-white/75 font-light tracking-[0.15em] uppercase"
-            style={{ fontSize: '11px' }}
-          >
-            {displayScene.name}
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

@@ -9,7 +9,12 @@ export default function Hotspot({ hotspot }) {
 
   useEffect(() => {
     if (labelRef.current) {
-      setLabelWidth(labelRef.current.scrollWidth);
+      // Use requestAnimationFrame to ensure layout is complete before measuring
+      requestAnimationFrame(() => {
+        if (labelRef.current) {
+          setLabelWidth(labelRef.current.scrollWidth);
+        }
+      });
     }
   }, [hotspot.name]);
 

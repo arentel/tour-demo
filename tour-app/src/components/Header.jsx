@@ -58,10 +58,11 @@ export default function Header() {
 
         {/* Center logo - larger */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <img
-            src="/logo.svg"
-            alt="Logo"
-            className="h-12 md:h-14 w-auto brightness-0 invert drop-shadow-lg"
+          <object
+            data="/logo.svg"
+            type="image/svg+xml"
+            className="h-12 md:h-14 w-auto drop-shadow-lg pointer-events-none"
+            aria-label="Logo"
           />
         </div>
 
