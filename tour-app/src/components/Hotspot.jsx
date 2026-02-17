@@ -24,7 +24,7 @@ export default function Hotspot({ hotspot }) {
     }
   };
 
-  const expandedWidth = 40 + 8 + labelWidth + 16;
+  const expandedWidth = 34 + labelWidth + 12;
 
   return (
     <div
@@ -40,7 +40,7 @@ export default function Hotspot({ hotspot }) {
         className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         style={{
           top: '50%',
-          left: 20,
+          left: 16,
           opacity: hovered ? 0 : 1,
           transition: 'opacity 0.4s ease',
         }}
@@ -78,7 +78,7 @@ export default function Hotspot({ hotspot }) {
         {/* Center dot */}
         <div
           className="flex-shrink-0 flex items-center justify-center"
-          style={{ width: 38, minWidth: 38, height: 38 }}
+          style={{ width: 32, minWidth: 32, height: 38 }}
         >
           <div
             className={`rounded-full bg-white ${hovered ? '' : 'hotspot-dot-pulse'}`}
@@ -93,7 +93,7 @@ export default function Hotspot({ hotspot }) {
         {/* Label */}
         <span
           ref={labelRef}
-          className="whitespace-nowrap pr-4"
+          className="whitespace-nowrap"
           style={{
             color: 'rgba(255,255,255,0.95)',
             fontSize: '13px',
