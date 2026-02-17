@@ -27,7 +27,9 @@ export default function AdminPanel() {
   const [showAddScene, setShowAddScene] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
   const [newSceneImage, setNewSceneImage] = useState('');
+  const [uploading, setUploading] = useState(false);
   const imageRef = useRef(null);
+  const newSceneFileRef = useRef(null);
 
   // Drag state
   const dragRef = useRef(null); // { hotspotId, startX, startY, moved }
@@ -108,9 +110,6 @@ export default function AdminPanel() {
     setNewHotspotName('');
     setNewHotspotTarget('');
   };
-
-  const [uploading, setUploading] = useState(false);
-  const newSceneFileRef = useRef(null); // store the File for new scene upload
 
   const handleImageUpload = async (sceneId, e) => {
     const file = e.target.files[0];
