@@ -7,7 +7,6 @@ export default function Hotspot({ hotspot }) {
   const labelRef = useRef(null);
   const [labelWidth, setLabelWidth] = useState(0);
 
-  // Measure the actual text width once on mount and when name changes
   useEffect(() => {
     if (labelRef.current) {
       setLabelWidth(labelRef.current.scrollWidth);
@@ -20,7 +19,6 @@ export default function Hotspot({ hotspot }) {
     }
   };
 
-  // Expanded width = circle (40) + gap (8) + text + padding right (16)
   const expandedWidth = 40 + 8 + labelWidth + 16;
 
   return (
@@ -32,7 +30,7 @@ export default function Hotspot({ hotspot }) {
         transform: 'translate(-50%, -50%)',
       }}
     >
-      {/* Pulse ring - fades out on hover */}
+      {/* Pulse ring */}
       <div
         className="absolute top-1/2 left-5 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         style={{
@@ -41,25 +39,30 @@ export default function Hotspot({ hotspot }) {
         }}
       >
         <div
-          className="hotspot-pulse-ring rounded-full border border-white/50"
-          style={{ width: 48, height: 48 }}
+          className="hotspot-pulse-ring rounded-full"
+          style={{
+            width: 48,
+            height: 48,
+            border: '1px solid rgba(255,255,255,0.4)',
+          }}
         />
       </div>
 
-      {/* Main container - animates width smoothly */}
+      {/* Main container */}
       <div
         className="relative flex items-center cursor-pointer select-none overflow-hidden"
         style={{
           width: hovered ? expandedWidth : 40,
           height: 40,
           borderRadius: 20,
-          border: '1.5px solid rgba(255,255,255,0.7)',
+          border: '1px solid rgba(255,255,255,0.6)',
           background: hovered
-            ? 'rgba(0,0,0,0.45)'
-            : 'rgba(255,255,255,0.08)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s ease',
+            ? 'rgba(0,0,0,0.55)'
+            : 'rgba(255,255,255,0.06)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s ease, border-color 0.35s ease',
+          borderColor: hovered ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)',
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -73,8 +76,8 @@ export default function Hotspot({ hotspot }) {
           <div
             className={`rounded-full bg-white ${hovered ? '' : 'hotspot-dot-pulse'}`}
             style={{
-              width: hovered ? 7 : 9,
-              height: hovered ? 7 : 9,
+              width: hovered ? 6 : 8,
+              height: hovered ? 6 : 8,
               transition: 'width 0.3s ease, height 0.3s ease',
             }}
           />
@@ -83,8 +86,12 @@ export default function Hotspot({ hotspot }) {
         {/* Label */}
         <span
           ref={labelRef}
-          className="text-white text-sm font-medium whitespace-nowrap pr-4"
+          className="whitespace-nowrap pr-4"
           style={{
+            color: 'rgba(255,255,255,0.95)',
+            fontSize: '13px',
+            fontWeight: 300,
+            letterSpacing: '0.04em',
             opacity: hovered ? 1 : 0,
             transform: hovered ? 'translateX(0)' : 'translateX(-8px)',
             transition: 'opacity 0.35s ease 0.1s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s',
