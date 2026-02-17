@@ -1,13 +1,14 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../firebase';
 import { loadTourData as loadLocal, saveTourData as saveLocal, resetTourData as resetLocal } from '../data/tourData';
 import {
-  loadTourDataFromFirestore,
-  saveTourDataToFirestore,
-  resetTourDataInFirestore,
-  compressImage,
-} from '../services/firebaseService';
+  loadTourData as loadFromSupabase,
+  saveTourData as saveToSupabase,
+  resetTourData as resetInSupabase,
+  uploadSceneImage,
+  signIn,
+  signOut,
+  onAuthChange,
+} from '../services/supabaseService';
 
 const TourContext = createContext(null);
 
@@ -23,9 +24,9 @@ export function TourProvider({ children }) {
 
   const currentScene = tourData.scenes.find((s) => s.id === currentSceneId);
 
-  // Listen to Firebase auth state
+  // Listen to Supabase auth state
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthChange((user) => {
       setIsAdminAuthenticated(!!user);
       if (user) {
         setShowLoginModal(false);
@@ -36,21 +37,20 @@ export function TourProvider({ children }) {
     return unsub;
   }, []);
 
-  // Load data from Firestore on mount
+  // Load data from Supabase on mount
   useEffect(() => {
     let cancelled = false;
-    loadTourDataFromFirestore()
+    loadFromSupabase()
       .then((data) => {
         if (!cancelled) {
           setTourData(data);
           setCurrentSceneId(data.startScene);
           setFirebaseReady(true);
-          // Keep localStorage in sync as fallback
           saveLocal(data);
         }
       })
       .catch((err) => {
-        console.warn('Firestore load failed, using local data:', err);
+        console.warn('Supabase load failed, using local data:', err);
         if (!cancelled) setFirebaseReady(true);
       });
     return () => { cancelled = true; };
@@ -59,7 +59,7 @@ export function TourProvider({ children }) {
   // --- Auth ---
   const loginAdmin = useCallback(async (email, password) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signIn(email, password);
       return true;
     } catch {
       return false;
@@ -67,7 +67,7 @@ export function TourProvider({ children }) {
   }, []);
 
   const logoutAdmin = useCallback(async () => {
-    await signOut(auth);
+    await signOut();
     setIsAdminOpen(false);
   }, []);
 
@@ -82,13 +82,12 @@ export function TourProvider({ children }) {
     [tourData.scenes]
   );
 
-  // --- Data persistence (Firestore + localStorage fallback) ---
+  // --- Data persistence (Supabase + localStorage fallback) ---
   const updateTourData = useCallback((newData) => {
     setTourData(newData);
     saveLocal(newData);
-    // Async save to Firestore (fire-and-forget, errors logged)
-    saveTourDataToFirestore(newData).catch((err) =>
-      console.error('Firestore save error:', err)
+    saveToSupabase(newData).catch((err) =>
+      console.error('Supabase save error:', err)
     );
   }, []);
 
@@ -178,21 +177,20 @@ export function TourProvider({ children }) {
     [tourData.scenes, updateScene]
   );
 
-  // --- Image: compress and return data URL ---
+  // --- Image: compress + upload to Supabase Storage ---
   const uploadImage = useCallback(async (sceneId, file) => {
-    return compressImage(file);
+    return uploadSceneImage(sceneId, file);
   }, []);
 
   // --- Reset ---
   const resetData = useCallback(async () => {
     try {
-      const data = await resetTourDataInFirestore();
+      const data = await resetInSupabase();
       setTourData(data);
       setCurrentSceneId(data.startScene);
       saveLocal(data);
     } catch (err) {
-      console.error('Firestore reset error:', err);
-      // Fallback to local reset
+      console.error('Supabase reset error:', err);
       const data = resetLocal();
       setTourData(data);
       setCurrentSceneId(data.startScene);
