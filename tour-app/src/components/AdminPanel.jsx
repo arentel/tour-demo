@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTour } from '../context/TourContext';
 
 export default function AdminPanel() {
@@ -12,48 +12,42 @@ export default function AdminPanel() {
     removeHotspot,
     updateHotspot,
     resetData,
-    navigateToScene,
-    currentSceneId,
     isAdminAuthenticated,
     logoutAdmin,
   } = useTour();
 
-  const [editingScene, setEditingScene] = useState(null);
+  const [selectedSceneId, setSelectedSceneId] = useState(
+    tourData.scenes[0]?.id || null
+  );
+  const [placingHotspot, setPlacingHotspot] = useState(false);
+  const [newHotspotName, setNewHotspotName] = useState('');
+  const [newHotspotTarget, setNewHotspotTarget] = useState('');
+  const [editingHotspot, setEditingHotspot] = useState(null);
+  const [showAddScene, setShowAddScene] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
   const [newSceneImage, setNewSceneImage] = useState('');
-  const [showAddScene, setShowAddScene] = useState(false);
-  const [showAddHotspot, setShowAddHotspot] = useState(null);
-  const [newHotspot, setNewHotspot] = useState({
-    name: '',
-    x: 50,
-    y: 50,
-    targetScene: '',
-  });
+  const imageRef = useRef(null);
 
-  const handleAddScene = () => {
-    if (!newSceneName.trim()) return;
-    const id = newSceneName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    addScene({
-      id,
-      name: newSceneName,
-      image: newSceneImage || '/scenes/scene-lobby.jpg',
-      hotspots: [],
-    });
-    setNewSceneName('');
-    setNewSceneImage('');
-    setShowAddScene(false);
-  };
+  if (!isAdminOpen || !isAdminAuthenticated) return null;
 
-  const handleAddHotspot = (sceneId) => {
-    if (!newHotspot.name.trim()) return;
-    const id = `hs-${sceneId}-${Date.now()}`;
-    addHotspot(sceneId, {
-      ...newHotspot,
+  const selectedScene = tourData.scenes.find((s) => s.id === selectedSceneId);
+
+  const handleImageClick = (e) => {
+    if (!placingHotspot || !selectedScene) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+    const id = `hs-${selectedSceneId}-${Date.now()}`;
+    addHotspot(selectedSceneId, {
       id,
-      targetScene: newHotspot.targetScene || null,
+      name: newHotspotName || `Hotspot ${selectedScene.hotspots.length + 1}`,
+      x,
+      y,
+      targetScene: newHotspotTarget || null,
     });
-    setNewHotspot({ name: '', x: 50, y: 50, targetScene: '' });
-    setShowAddHotspot(null);
+    setPlacingHotspot(false);
+    setNewHotspotName('');
+    setNewHotspotTarget('');
   };
 
   const handleImageUpload = (sceneId, e) => {
@@ -76,297 +70,605 @@ export default function AdminPanel() {
     reader.readAsDataURL(file);
   };
 
-  if (!isAdminOpen || !isAdminAuthenticated) return null;
-
-  // Shared input style
-  const inputStyle = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    color: 'rgba(255,255,255,0.85)',
+  const handleAddScene = () => {
+    if (!newSceneName.trim()) return;
+    const id = newSceneName
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    addScene({
+      id,
+      name: newSceneName,
+      image: newSceneImage || '/scenes/scene-lobby.jpg',
+      hotspots: [],
+    });
+    setSelectedSceneId(id);
+    setNewSceneName('');
+    setNewSceneImage('');
+    setShowAddScene(false);
   };
 
   return (
-    <div
-      className="fixed top-20 right-0 bottom-0 w-96 z-30 flex flex-col"
-      style={{
-        background: 'rgba(10,10,10,0.95)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderLeft: '1px solid rgba(255,255,255,0.06)',
-      }}
-    >
-      {/* Panel header */}
+    <div className="fixed inset-0 z-50 flex" style={{ fontFamily: "'Inter', sans-serif" }}>
+      {/* Left sidebar - scene list */}
       <div
-        className="flex items-center justify-between px-6 py-5"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        className="w-72 flex-shrink-0 flex flex-col h-full"
+        style={{
+          background: '#fafafa',
+          borderRight: '1px solid #e8e8e8',
+        }}
       >
-        <h2 className="text-white/80 text-sm font-light tracking-[0.1em] uppercase">
-          Administrador
-        </h2>
-        <button
-          onClick={logoutAdmin}
-          className="flex items-center gap-1.5 transition-colors"
-          style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10px', letterSpacing: '0.1em' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
-          title="Cerrar sesión"
+        {/* Sidebar header */}
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid #e8e8e8' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-          </svg>
-          SALIR
-        </button>
-      </div>
-
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto admin-scroll p-5 space-y-3">
-        {/* Reset button */}
-        <button
-          onClick={() => {
-            if (confirm('Esto restaurará los datos por defecto. ¿Continuar?')) {
-              resetData();
-            }
-          }}
-          className="w-full py-2 px-4 rounded-lg text-xs font-light tracking-wide transition-colors"
-          style={{
-            background: 'rgba(180,80,80,0.08)',
-            border: '1px solid rgba(180,80,80,0.15)',
-            color: 'rgba(220,160,160,0.7)',
-          }}
-        >
-          Restaurar datos por defecto
-        </button>
-
-        {/* Scenes */}
-        {tourData.scenes.map((scene) => (
-          <div
-            key={scene.id}
-            className="overflow-hidden rounded-xl"
-            style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            {/* Scene header */}
+          <div className="flex items-center gap-2.5">
             <div
-              className="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors"
-              style={{
-                borderBottom: '1px solid rgba(255,255,255,0.04)',
-                background: currentSceneId === scene.id ? 'rgba(255,255,255,0.04)' : 'transparent',
-              }}
-              onClick={() => {
-                setEditingScene(editingScene === scene.id ? null : scene.id);
-                navigateToScene(scene.id);
-              }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: '#111', color: '#fff' }}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <img src={scene.image} alt={scene.name} className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <h3 className="text-white/80 text-sm font-light">{scene.name}</h3>
-                  <p className="text-white/25 text-[10px] font-light">
-                    {scene.hotspots.length} hotspot{scene.hotspots.length !== 1 && 's'}
-                  </p>
-                </div>
-              </div>
-              <svg
-                className="w-4 h-4 transition-transform"
-                style={{
-                  color: 'rgba(255,255,255,0.25)',
-                  transform: editingScene === scene.id ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M6 9l6 6 6-6" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
+            <div>
+              <h1 className="text-sm font-medium" style={{ color: '#111' }}>Tour Virtual</h1>
+              <p className="text-[10px]" style={{ color: '#999' }}>{tourData.scenes.length} escenas</p>
+            </div>
+          </div>
+          <button
+            onClick={logoutAdmin}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ color: '#999', background: 'transparent' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#f0f0f0';
+              e.currentTarget.style.color = '#666';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#999';
+            }}
+            title="Cerrar sesión"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+          </button>
+        </div>
 
-            {/* Scene details */}
-            {editingScene === scene.id && (
-              <div className="p-4 space-y-3">
-                <div>
-                  <label className="text-white/30 text-[10px] tracking-[0.1em] uppercase block mb-1.5">Nombre</label>
-                  <input
-                    type="text"
-                    value={scene.name}
-                    onChange={(e) => updateScene(scene.id, { name: e.target.value })}
-                    className="w-full rounded-lg px-3 py-2 text-sm font-light focus:outline-none"
-                    style={inputStyle}
+        {/* Scene list */}
+        <div className="flex-1 overflow-y-auto admin-scroll-light p-3 space-y-1">
+          {tourData.scenes.map((scene) => (
+            <button
+              key={scene.id}
+              onClick={() => {
+                setSelectedSceneId(scene.id);
+                setEditingHotspot(null);
+                setPlacingHotspot(false);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group"
+              style={{
+                background: selectedSceneId === scene.id ? '#fff' : 'transparent',
+                boxShadow: selectedSceneId === scene.id ? '0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)' : 'none',
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+                style={{ border: '1px solid #e8e8e8' }}
+              >
+                <img src={scene.image} alt={scene.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-medium truncate"
+                  style={{ color: selectedSceneId === scene.id ? '#111' : '#555' }}
+                >
+                  {scene.name}
+                </p>
+                <p className="text-[11px]" style={{ color: '#aaa' }}>
+                  {scene.hotspots.length} hotspot{scene.hotspots.length !== 1 && 's'}
+                </p>
+              </div>
+            </button>
+          ))}
+
+          {/* Add scene button / form */}
+          {!showAddScene ? (
+            <button
+              onClick={() => setShowAddScene(true)}
+              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl transition-colors text-xs font-medium"
+              style={{
+                color: '#aaa',
+                border: '1px dashed #ddd',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#666';
+                e.currentTarget.style.borderColor = '#bbb';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#aaa';
+                e.currentTarget.style.borderColor = '#ddd';
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Añadir escena
+            </button>
+          ) : (
+            <div
+              className="rounded-xl p-3.5 space-y-2.5"
+              style={{
+                background: '#fff',
+                border: '1px solid #e0e0e0',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Nombre de la escena"
+                value={newSceneName}
+                onChange={(e) => setNewSceneName(e.target.value)}
+                autoFocus
+                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                onFocus={(e) => (e.target.style.borderColor = '#bbb')}
+                onBlur={(e) => (e.target.style.borderColor = '#e0e0e0')}
+              />
+              <label
+                className="flex items-center gap-2 cursor-pointer rounded-lg px-3 py-2 transition-colors"
+                style={{ border: '1px solid #e0e0e0', color: '#888' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                </svg>
+                <span className="text-xs">
+                  {newSceneImage ? 'Imagen seleccionada' : 'Subir imagen'}
+                </span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleNewSceneImageUpload} />
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddScene}
+                  className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
+                  style={{ background: '#111', color: '#fff' }}
+                >
+                  Crear
+                </button>
+                <button
+                  onClick={() => { setShowAddScene(false); setNewSceneName(''); setNewSceneImage(''); }}
+                  className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
+                  style={{ background: '#f0f0f0', color: '#666' }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom actions */}
+        <div className="p-3 space-y-2" style={{ borderTop: '1px solid #e8e8e8' }}>
+          <button
+            onClick={() => {
+              if (confirm('Esto restaurará los datos por defecto. ¿Continuar?')) {
+                resetData();
+                setSelectedSceneId(tourData.scenes[0]?.id || null);
+              }
+            }}
+            className="w-full py-2 px-3 rounded-lg text-[11px] font-medium transition-colors flex items-center justify-center gap-1.5"
+            style={{ color: '#c44', background: '#fff5f5', border: '1px solid #ffe0e0' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#ffeded')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = '#fff5f5')}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 105.64-12.18L1 10" />
+            </svg>
+            Restaurar datos por defecto
+          </button>
+        </div>
+      </div>
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col h-full" style={{ background: '#f2f2f2' }}>
+        {/* Top bar */}
+        <div
+          className="flex items-center justify-between px-6 py-3"
+          style={{
+            background: '#fff',
+            borderBottom: '1px solid #e8e8e8',
+          }}
+        >
+          <div className="flex items-center gap-4">
+            {selectedScene && (
+              <>
+                <h2 className="text-base font-medium" style={{ color: '#111' }}>
+                  {selectedScene.name}
+                </h2>
+                <span
+                  className="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                  style={{ background: '#f5f5f5', color: '#888' }}
+                >
+                  {selectedScene.hotspots.length} hotspot{selectedScene.hotspots.length !== 1 && 's'}
+                </span>
+              </>
+            )}
+          </div>
+          {selectedScene && (
+            <div className="flex items-center gap-2">
+              {/* Upload new image */}
+              <label
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer transition-colors"
+                style={{ background: '#f5f5f5', color: '#666' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#eee')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                </svg>
+                Cambiar imagen
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(selectedSceneId, e)} />
+              </label>
+              {/* Edit scene name */}
+              <input
+                type="text"
+                value={selectedScene.name}
+                onChange={(e) => updateScene(selectedSceneId, { name: e.target.value })}
+                className="px-3 py-1.5 rounded-lg text-[11px] font-medium focus:outline-none"
+                style={{ border: '1px solid #e0e0e0', color: '#333', width: 140 }}
+                onFocus={(e) => (e.target.style.borderColor = '#bbb')}
+                onBlur={(e) => (e.target.style.borderColor = '#e0e0e0')}
+              />
+              {/* Delete scene */}
+              <button
+                onClick={() => {
+                  if (confirm(`¿Eliminar la escena "${selectedScene.name}"?`)) {
+                    const remaining = tourData.scenes.filter((s) => s.id !== selectedSceneId);
+                    setSelectedSceneId(remaining[0]?.id || null);
+                    removeScene(selectedSceneId);
+                  }
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+                style={{ color: '#c44', background: '#fff5f5', border: '1px solid #ffe0e0' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#ffeded')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#fff5f5')}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Image + hotspot editor area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Image preview with hotspots */}
+          <div className="flex-1 p-6 flex items-center justify-center overflow-hidden">
+            {selectedScene ? (
+              <div className="relative w-full h-full flex items-center justify-center">
+                <div
+                  ref={imageRef}
+                  className="relative max-w-full max-h-full overflow-hidden rounded-xl"
+                  style={{
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04)',
+                    cursor: placingHotspot ? 'crosshair' : 'default',
+                  }}
+                  onClick={handleImageClick}
+                >
+                  <img
+                    src={selectedScene.image}
+                    alt={selectedScene.name}
+                    className="block max-w-full max-h-[calc(100vh-160px)] object-contain select-none"
+                    draggable={false}
                   />
-                </div>
-
-                <div>
-                  <label className="text-white/30 text-[10px] tracking-[0.1em] uppercase block mb-1.5">Imagen</label>
-                  <label className="flex items-center gap-2 cursor-pointer rounded-lg px-3 py-2 transition-colors" style={inputStyle}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-                    </svg>
-                    <span className="text-white/35 text-xs font-light">Subir imagen</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(scene.id, e)} />
-                  </label>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-white/30 text-[10px] tracking-[0.1em] uppercase">Hotspots</label>
-                    <button
-                      onClick={() => setShowAddHotspot(showAddHotspot === scene.id ? null : scene.id)}
-                      className="text-white/40 text-[10px] tracking-wider uppercase hover:text-white/70 transition-colors"
+                  {/* Render hotspots on image */}
+                  {selectedScene.hotspots.map((hs) => (
+                    <div
+                      key={hs.id}
+                      className="absolute group"
+                      style={{
+                        left: `${hs.x}%`,
+                        top: `${hs.y}%`,
+                        transform: 'translate(-50%, -50%)',
+                      }}
                     >
-                      + Añadir
-                    </button>
-                  </div>
-
-                  {showAddHotspot === scene.id && (
-                    <div className="rounded-lg p-3 mb-2 space-y-2" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <input
-                        type="text"
-                        placeholder="Nombre del hotspot"
-                        value={newHotspot.name}
-                        onChange={(e) => setNewHotspot({ ...newHotspot, name: e.target.value })}
-                        className="w-full rounded px-2 py-1.5 text-xs font-light focus:outline-none"
-                        style={inputStyle}
-                      />
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <label className="text-white/25 text-[9px] block mb-0.5">X (%)</label>
-                          <input type="number" min="0" max="100" value={newHotspot.x}
-                            onChange={(e) => setNewHotspot({ ...newHotspot, x: Number(e.target.value) })}
-                            className="w-full rounded px-2 py-1.5 text-xs font-light focus:outline-none" style={inputStyle} />
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition-all"
+                        style={{
+                          background: editingHotspot === hs.id ? '#111' : 'rgba(0,0,0,0.6)',
+                          border: editingHotspot === hs.id ? '2px solid #fff' : '2px solid rgba(255,255,255,0.8)',
+                          boxShadow: editingHotspot === hs.id
+                            ? '0 0 0 3px #111, 0 2px 8px rgba(0,0,0,0.3)'
+                            : '0 2px 8px rgba(0,0,0,0.3)',
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingHotspot(editingHotspot === hs.id ? null : hs.id);
+                        }}
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                      </div>
+                      {/* Tooltip */}
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        <div
+                          className="px-2.5 py-1 rounded-md text-[11px] font-medium"
+                          style={{
+                            background: '#111',
+                            color: '#fff',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                          }}
+                        >
+                          {hs.name}
                         </div>
-                        <div className="flex-1">
-                          <label className="text-white/25 text-[9px] block mb-0.5">Y (%)</label>
-                          <input type="number" min="0" max="100" value={newHotspot.y}
-                            onChange={(e) => setNewHotspot({ ...newHotspot, y: Number(e.target.value) })}
-                            className="w-full rounded px-2 py-1.5 text-xs font-light focus:outline-none" style={inputStyle} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-white/25 text-[9px] block mb-0.5">Escena destino</label>
-                        <select value={newHotspot.targetScene}
-                          onChange={(e) => setNewHotspot({ ...newHotspot, targetScene: e.target.value })}
-                          className="w-full rounded px-2 py-1.5 text-xs font-light focus:outline-none" style={inputStyle}>
-                          <option value="" style={{ background: '#0a0a0a' }}>Sin destino</option>
-                          {tourData.scenes.filter((s) => s.id !== scene.id).map((s) => (
-                            <option key={s.id} value={s.id} style={{ background: '#0a0a0a' }}>{s.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex gap-2 pt-1">
-                        <button onClick={() => handleAddHotspot(scene.id)}
-                          className="flex-1 py-1.5 rounded text-[10px] font-light tracking-wider uppercase transition-colors"
-                          style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
-                          Añadir
-                        </button>
-                        <button onClick={() => setShowAddHotspot(null)}
-                          className="flex-1 py-1.5 rounded text-[10px] font-light tracking-wider uppercase transition-colors"
-                          style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.35)' }}>
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {scene.hotspots.map((hs) => (
-                    <div key={hs.id} className="rounded-lg p-3 mb-2" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white/60 text-xs font-light">{hs.name}</span>
-                        <button onClick={() => removeHotspot(scene.id, hs.id)} className="transition-colors" style={{ color: 'rgba(180,80,80,0.5)' }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="space-y-2">
-                        <input type="text" value={hs.name}
-                          onChange={(e) => updateHotspot(scene.id, hs.id, { name: e.target.value })}
-                          className="w-full rounded px-2 py-1 text-xs font-light focus:outline-none" style={inputStyle} />
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <label className="text-white/25 text-[9px]">X: {hs.x}%</label>
-                            <input type="range" min="0" max="100" value={hs.x}
-                              onChange={(e) => updateHotspot(scene.id, hs.id, { x: Number(e.target.value) })}
-                              className="w-full h-[2px]" style={{ accentColor: 'rgba(255,255,255,0.5)' }} />
-                          </div>
-                          <div className="flex-1">
-                            <label className="text-white/25 text-[9px]">Y: {hs.y}%</label>
-                            <input type="range" min="0" max="100" value={hs.y}
-                              onChange={(e) => updateHotspot(scene.id, hs.id, { y: Number(e.target.value) })}
-                              className="w-full h-[2px]" style={{ accentColor: 'rgba(255,255,255,0.5)' }} />
-                          </div>
-                        </div>
-                        <select value={hs.targetScene || ''}
-                          onChange={(e) => updateHotspot(scene.id, hs.id, { targetScene: e.target.value || null })}
-                          className="w-full rounded px-2 py-1 text-xs font-light focus:outline-none" style={inputStyle}>
-                          <option value="" style={{ background: '#0a0a0a' }}>Sin destino</option>
-                          {tourData.scenes.filter((s) => s.id !== scene.id).map((s) => (
-                            <option key={s.id} value={s.id} style={{ background: '#0a0a0a' }}>{s.name}</option>
-                          ))}
-                        </select>
                       </div>
                     </div>
                   ))}
+                  {/* Placing mode overlay */}
+                  {placingHotspot && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ background: 'rgba(0,0,0,0.15)' }}
+                    >
+                      <div
+                        className="px-5 py-3 rounded-xl text-sm font-medium"
+                        style={{
+                          background: '#fff',
+                          color: '#111',
+                          boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        Haz clic en la imagen para colocar el hotspot
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                <button
-                  onClick={() => {
-                    if (confirm(`¿Eliminar la escena "${scene.name}"?`)) {
-                      setEditingScene(null);
-                      removeScene(scene.id);
-                    }
-                  }}
-                  className="w-full py-2 rounded-lg text-[10px] font-light tracking-wider uppercase transition-colors"
-                  style={{ background: 'rgba(180,80,80,0.06)', border: '1px solid rgba(180,80,80,0.12)', color: 'rgba(220,160,160,0.6)' }}
-                >
-                  Eliminar escena
-                </button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1" className="mx-auto mb-3">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <p className="text-sm" style={{ color: '#999' }}>Selecciona o crea una escena</p>
               </div>
             )}
           </div>
-        ))}
 
-        {/* Add scene */}
-        {!showAddScene ? (
-          <button
-            onClick={() => setShowAddScene(true)}
-            className="w-full py-3 rounded-xl text-white/25 hover:text-white/45 transition-colors text-xs font-light tracking-wider"
-            style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
-          >
-            + Añadir nueva escena
-          </button>
-        ) : (
-          <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <h4 className="text-white/60 text-xs font-light tracking-[0.1em] uppercase">Nueva escena</h4>
-            <input type="text" placeholder="Nombre de la escena" value={newSceneName}
-              onChange={(e) => setNewSceneName(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 text-sm font-light focus:outline-none" style={inputStyle} />
-            <label className="flex items-center gap-2 cursor-pointer rounded-lg px-3 py-2 transition-colors" style={inputStyle}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-              </svg>
-              <span className="text-white/35 text-xs font-light">
-                {newSceneImage ? 'Imagen seleccionada' : 'Subir imagen'}
-              </span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleNewSceneImageUpload} />
-            </label>
-            <div className="flex gap-2">
-              <button onClick={handleAddScene}
-                className="flex-1 py-2 rounded-lg text-xs font-light tracking-wide transition-colors"
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
-                Crear
-              </button>
-              <button onClick={() => { setShowAddScene(false); setNewSceneName(''); setNewSceneImage(''); }}
-                className="flex-1 py-2 rounded-lg text-xs font-light tracking-wide transition-colors"
-                style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.35)' }}>
-                Cancelar
-              </button>
+          {/* Right panel - hotspot list */}
+          {selectedScene && (
+            <div
+              className="w-80 flex-shrink-0 flex flex-col h-full overflow-hidden"
+              style={{
+                background: '#fff',
+                borderLeft: '1px solid #e8e8e8',
+              }}
+            >
+              {/* Hotspot panel header */}
+              <div
+                className="flex items-center justify-between px-5 py-3"
+                style={{ borderBottom: '1px solid #e8e8e8' }}
+              >
+                <h3 className="text-sm font-medium" style={{ color: '#111' }}>Hotspots</h3>
+                {!placingHotspot ? (
+                  <button
+                    onClick={() => setPlacingHotspot(true)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors"
+                    style={{ background: '#111', color: '#fff' }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Añadir
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setPlacingHotspot(false);
+                      setNewHotspotName('');
+                      setNewHotspotTarget('');
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors"
+                    style={{ background: '#f0f0f0', color: '#666' }}
+                  >
+                    Cancelar
+                  </button>
+                )}
+              </div>
+
+              {/* New hotspot config (when placing) */}
+              {placingHotspot && (
+                <div className="px-5 py-3 space-y-2.5" style={{ borderBottom: '1px solid #e8e8e8', background: '#fafafa' }}>
+                  <p className="text-[11px] font-medium" style={{ color: '#888' }}>Nuevo hotspot</p>
+                  <input
+                    type="text"
+                    placeholder="Nombre del hotspot"
+                    value={newHotspotName}
+                    onChange={(e) => setNewHotspotName(e.target.value)}
+                    autoFocus
+                    className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
+                    style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                    onFocus={(e) => (e.target.style.borderColor = '#bbb')}
+                    onBlur={(e) => (e.target.style.borderColor = '#e0e0e0')}
+                  />
+                  <select
+                    value={newHotspotTarget}
+                    onChange={(e) => setNewHotspotTarget(e.target.value)}
+                    className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
+                    style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                  >
+                    <option value="">Sin escena destino</option>
+                    {tourData.scenes
+                      .filter((s) => s.id !== selectedSceneId)
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Hotspot list */}
+              <div className="flex-1 overflow-y-auto admin-scroll-light">
+                {selectedScene.hotspots.length === 0 && !placingHotspot ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center px-8">
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                      style={{ background: '#f5f5f5' }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                    </div>
+                    <p className="text-xs font-medium mb-1" style={{ color: '#888' }}>Sin hotspots</p>
+                    <p className="text-[11px]" style={{ color: '#bbb' }}>
+                      Haz clic en "Añadir" y luego en la imagen para colocar hotspots
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 space-y-1.5">
+                    {selectedScene.hotspots.map((hs) => (
+                      <div
+                        key={hs.id}
+                        className="rounded-xl overflow-hidden transition-all"
+                        style={{
+                          border: editingHotspot === hs.id ? '1px solid #ddd' : '1px solid transparent',
+                          background: editingHotspot === hs.id ? '#fafafa' : 'transparent',
+                        }}
+                      >
+                        {/* Hotspot row */}
+                        <div
+                          className="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors rounded-xl"
+                          style={{
+                            background: editingHotspot === hs.id ? '#fafafa' : 'transparent',
+                          }}
+                          onClick={() => setEditingHotspot(editingHotspot === hs.id ? null : hs.id)}
+                          onMouseEnter={(e) => {
+                            if (editingHotspot !== hs.id) e.currentTarget.style.background = '#f8f8f8';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (editingHotspot !== hs.id) e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          <div
+                            className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center"
+                            style={{
+                              background: editingHotspot === hs.id ? '#111' : '#e8e8e8',
+                            }}
+                          >
+                            <div
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{
+                                background: editingHotspot === hs.id ? '#fff' : '#999',
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate" style={{ color: '#333' }}>{hs.name}</p>
+                            <p className="text-[10px]" style={{ color: '#bbb' }}>
+                              {hs.x}%, {hs.y}%
+                              {hs.targetScene && ` → ${tourData.scenes.find((s) => s.id === hs.targetScene)?.name || ''}`}
+                            </p>
+                          </div>
+                          <svg
+                            width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="#ccc" strokeWidth="1.5"
+                            style={{
+                              transform: editingHotspot === hs.id ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s ease',
+                            }}
+                          >
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </div>
+
+                        {/* Expanded edit */}
+                        {editingHotspot === hs.id && (
+                          <div className="px-3 pb-3 space-y-2.5">
+                            <div>
+                              <label className="text-[10px] font-medium block mb-1" style={{ color: '#999' }}>Nombre</label>
+                              <input
+                                type="text"
+                                value={hs.name}
+                                onChange={(e) => updateHotspot(selectedSceneId, hs.id, { name: e.target.value })}
+                                className="w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                                style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                                onFocus={(e) => (e.target.style.borderColor = '#bbb')}
+                                onBlur={(e) => (e.target.style.borderColor = '#e0e0e0')}
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="text-[10px] font-medium block mb-1" style={{ color: '#999' }}>X (%)</label>
+                                <input
+                                  type="number" min="0" max="100" value={hs.x}
+                                  onChange={(e) => updateHotspot(selectedSceneId, hs.id, { x: Number(e.target.value) })}
+                                  className="w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                                  style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="text-[10px] font-medium block mb-1" style={{ color: '#999' }}>Y (%)</label>
+                                <input
+                                  type="number" min="0" max="100" value={hs.y}
+                                  onChange={(e) => updateHotspot(selectedSceneId, hs.id, { y: Number(e.target.value) })}
+                                  className="w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                                  style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-medium block mb-1" style={{ color: '#999' }}>Escena destino</label>
+                              <select
+                                value={hs.targetScene || ''}
+                                onChange={(e) => updateHotspot(selectedSceneId, hs.id, { targetScene: e.target.value || null })}
+                                className="w-full rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                                style={{ border: '1px solid #e0e0e0', color: '#333' }}
+                              >
+                                <option value="">Sin destino</option>
+                                {tourData.scenes
+                                  .filter((s) => s.id !== selectedSceneId)
+                                  .map((s) => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                  ))}
+                              </select>
+                            </div>
+                            <button
+                              onClick={() => {
+                                removeHotspot(selectedSceneId, hs.id);
+                                setEditingHotspot(null);
+                              }}
+                              className="w-full py-1.5 rounded-lg text-[11px] font-medium transition-colors flex items-center justify-center gap-1"
+                              style={{ color: '#c44', background: '#fff5f5', border: '1px solid #ffe0e0' }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = '#ffeded')}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = '#fff5f5')}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                              </svg>
+                              Eliminar hotspot
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
