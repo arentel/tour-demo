@@ -13,28 +13,36 @@ import {
 const TourContext = createContext(null);
 
 export function TourProvider({ children }) {
-  const [tourData, setTourData] = useState(loadLocal);
-  const [currentSceneId, setCurrentSceneId] = useState(tourData.startScene);
+  const [tourData, setTourData] = useState(() => loadLocal());
+  const [currentSceneId, setCurrentSceneId] = useState(() => loadLocal().startScene);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [firebaseReady, setFirebaseReady] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
   const currentScene = tourData.scenes.find((s) => s.id === currentSceneId);
 
   // Listen to Supabase auth state
   useEffect(() => {
-    const unsub = onAuthChange((user) => {
-      setIsAdminAuthenticated(!!user);
-      if (user) {
-        setShowLoginModal(false);
-        setIsAdminOpen(true);
-      }
+    let unsub;
+    try {
+      unsub = onAuthChange((user) => {
+        setIsAdminAuthenticated(!!user);
+        if (user) {
+          setShowLoginModal(false);
+          setIsAdminOpen(true);
+        }
+        setAuthLoading(false);
+      });
+    } catch (err) {
+      console.warn('Auth setup failed:', err);
       setAuthLoading(false);
-    });
-    return unsub;
+    }
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   // Load data from Supabase on mount
@@ -42,16 +50,17 @@ export function TourProvider({ children }) {
     let cancelled = false;
     loadFromSupabase()
       .then((data) => {
-        if (!cancelled) {
+        if (!cancelled && data) {
           setTourData(data);
           setCurrentSceneId(data.startScene);
-          setFirebaseReady(true);
           saveLocal(data);
         }
       })
       .catch((err) => {
         console.warn('Supabase load failed, using local data:', err);
-        if (!cancelled) setFirebaseReady(true);
+      })
+      .finally(() => {
+        if (!cancelled) setDataReady(true);
       });
     return () => { cancelled = true; };
   }, []);
@@ -67,7 +76,11 @@ export function TourProvider({ children }) {
   }, []);
 
   const logoutAdmin = useCallback(async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (err) {
+      console.warn('Logout error:', err);
+    }
     setIsAdminOpen(false);
   }, []);
 
@@ -86,9 +99,7 @@ export function TourProvider({ children }) {
   const updateTourData = useCallback((newData) => {
     setTourData(newData);
     saveLocal(newData);
-    saveToSupabase(newData).catch((err) =>
-      console.error('Supabase save error:', err)
-    );
+    saveToSupabase(newData);
   }, []);
 
   // --- Scene CRUD ---
@@ -190,7 +201,7 @@ export function TourProvider({ children }) {
       setCurrentSceneId(data.startScene);
       saveLocal(data);
     } catch (err) {
-      console.error('Supabase reset error:', err);
+      console.error('Reset error:', err);
       const data = resetLocal();
       setTourData(data);
       setCurrentSceneId(data.startScene);
@@ -207,7 +218,7 @@ export function TourProvider({ children }) {
         isAdminOpen,
         isAdminAuthenticated,
         showLoginModal,
-        firebaseReady,
+        firebaseReady: dataReady,
         authLoading,
         setIsMenuOpen,
         setIsAdminOpen,
