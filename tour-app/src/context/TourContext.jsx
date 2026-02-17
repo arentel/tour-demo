@@ -6,8 +6,7 @@ import {
   loadTourDataFromFirestore,
   saveTourDataToFirestore,
   resetTourDataInFirestore,
-  uploadSceneImage,
-  deleteSceneImage,
+  compressImage,
 } from '../services/firebaseService';
 
 const TourContext = createContext(null);
@@ -126,8 +125,6 @@ export function TourProvider({ children }) {
         setCurrentSceneId(cleanedScenes[0]?.id || '');
       }
       updateTourData(newData);
-      // Clean up the image in Storage
-      deleteSceneImage(sceneId).catch(() => {});
     },
     [tourData, currentSceneId, updateTourData]
   );
@@ -181,10 +178,9 @@ export function TourProvider({ children }) {
     [tourData.scenes, updateScene]
   );
 
-  // --- Image upload to Firebase Storage ---
+  // --- Image: compress and return data URL ---
   const uploadImage = useCallback(async (sceneId, file) => {
-    const url = await uploadSceneImage(sceneId, file);
-    return url;
+    return compressImage(file);
   }, []);
 
   // --- Reset ---

@@ -5,18 +5,44 @@ import {
   collection,
   getDocs,
   writeBatch,
-  deleteDoc,
 } from 'firebase/firestore';
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from 'firebase/storage';
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
 import { defaultTourData } from '../data/tourData';
 
 const TOUR_ID = 'main';
+const MAX_IMAGE_WIDTH = 1920;
+const IMAGE_QUALITY = 0.7;
+
+// --- Image compression (File → compressed data URL) ---
+
+export function compressImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > MAX_IMAGE_WIDTH) {
+        height = Math.round((height * MAX_IMAGE_WIDTH) / width);
+        width = MAX_IMAGE_WIDTH;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', IMAGE_QUALITY));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      // Fallback: read as-is
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve(ev.target.result);
+      reader.readAsDataURL(file);
+    };
+    img.src = url;
+  });
+}
 
 // --- Firestore: Tour Data ---
 
@@ -40,7 +66,7 @@ export async function loadTourDataFromFirestore() {
     scenes.push({ id: docSnap.id, ...docSnap.data() });
   });
 
-  // Sort by the order field, or by name as fallback
+  // Sort by the order field
   scenes.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
   return {
@@ -56,8 +82,7 @@ export async function saveTourDataToFirestore(tourData) {
   const tourRef = doc(db, 'tours', TOUR_ID);
   batch.set(tourRef, { startScene: tourData.startScene });
 
-  // We need to delete old scenes and write new ones
-  // First get existing scenes to remove stale ones
+  // Get existing scenes to detect deletions
   const existingSnap = await getDocs(
     collection(db, 'tours', TOUR_ID, 'scenes')
   );
@@ -112,21 +137,4 @@ async function seedDefaultData() {
   });
 
   await batch.commit();
-}
-
-// --- Storage: Image Upload ---
-
-export async function uploadSceneImage(sceneId, file) {
-  const storageRef = ref(storage, `tours/${TOUR_ID}/scenes/${sceneId}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
-}
-
-export async function deleteSceneImage(sceneId) {
-  try {
-    const storageRef = ref(storage, `tours/${TOUR_ID}/scenes/${sceneId}`);
-    await deleteObject(storageRef);
-  } catch {
-    // Image may not exist in storage (e.g. default scenes use local images)
-  }
 }
