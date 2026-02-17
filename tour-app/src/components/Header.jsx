@@ -11,25 +11,14 @@ export default function Header() {
     isAdminOpen,
     setIsAdminOpen,
     setShowLoginModal,
-    logoutAdmin,
   } = useTour();
 
   const handleAdminClick = () => {
     if (isAdminAuthenticated) {
-      if (isAdminOpen) {
-        logoutAdmin();
-      } else {
-        setIsAdminOpen(true);
-      }
+      setIsAdminOpen(!isAdminOpen);
     } else {
       setShowLoginModal(true);
     }
-  };
-
-  const getAdminLabel = () => {
-    if (!isAdminAuthenticated) return 'ADMIN';
-    if (isAdminOpen) return 'CERRAR';
-    return 'ADMIN';
   };
 
   return (
@@ -51,18 +40,18 @@ export default function Header() {
           aria-label="Menu"
         >
           <span
-            className={`block w-7 h-[1.5px] bg-white/90 transition-all duration-300 ease-out ${
-              isMenuOpen ? 'rotate-45 translate-y-[6.5px]' : 'group-hover:w-5'
+            className={`block w-7 h-[2px] bg-white/90 transition-all duration-300 ease-out ${
+              isMenuOpen ? 'rotate-45 translate-y-[7px]' : 'group-hover:w-5'
             }`}
           />
           <span
-            className={`block w-7 h-[1.5px] bg-white/90 transition-all duration-300 ease-out ${
+            className={`block w-7 h-[2px] bg-white/90 transition-all duration-300 ease-out ${
               isMenuOpen ? 'opacity-0 scale-0' : ''
             }`}
           />
           <span
-            className={`block w-7 h-[1.5px] bg-white/90 transition-all duration-300 ease-out ${
-              isMenuOpen ? '-rotate-45 -translate-y-[6.5px]' : 'group-hover:w-5'
+            className={`block w-7 h-[2px] bg-white/90 transition-all duration-300 ease-out ${
+              isMenuOpen ? '-rotate-45 -translate-y-[7px]' : 'group-hover:w-5'
             }`}
           />
         </button>
@@ -89,21 +78,24 @@ export default function Header() {
           {isAdminAuthenticated && (
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
           )}
-          {getAdminLabel()}
+          ADMIN
         </button>
       </header>
 
       {/* Menu overlay with progressive edge blur */}
       <div
-        className={`fixed inset-0 z-40 transition-opacity duration-700 ease-out ${
-          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-40 ${
+          isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
       >
-        {/* Layer 1: Edge gradients */}
+        {/* Layer 1: Edge gradients - appears first (0ms) */}
         <div
-          className="absolute inset-0 transition-opacity duration-500 ease-out"
+          className="absolute inset-0"
           style={{
             opacity: isMenuOpen ? 1 : 0,
+            transition: isMenuOpen
+              ? 'opacity 0.5s ease-out 0ms'
+              : 'opacity 0.4s ease-in 0ms',
             background: `
               linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 70%),
               linear-gradient(to left, rgba(0,0,0,0.4) 0%, transparent 35%),
@@ -114,30 +106,42 @@ export default function Header() {
           onClick={() => setIsMenuOpen(false)}
         />
 
-        {/* Layer 2: Backdrop blur */}
+        {/* Layer 2: Backdrop blur - starts early (50ms), builds slowly */}
         <div
-          className="absolute inset-0 transition-all duration-700 ease-out"
+          className="absolute inset-0"
           style={{
-            backdropFilter: isMenuOpen ? 'blur(10px)' : 'blur(0px)',
-            WebkitBackdropFilter: isMenuOpen ? 'blur(10px)' : 'blur(0px)',
-            transitionDelay: '80ms',
+            backdropFilter: isMenuOpen ? 'blur(12px)' : 'blur(0px)',
+            WebkitBackdropFilter: isMenuOpen ? 'blur(12px)' : 'blur(0px)',
+            transition: isMenuOpen
+              ? 'backdrop-filter 0.9s ease-out 50ms, -webkit-backdrop-filter 0.9s ease-out 50ms'
+              : 'backdrop-filter 0.3s ease-in 0ms, -webkit-backdrop-filter 0.3s ease-in 0ms',
           }}
           onClick={() => setIsMenuOpen(false)}
         />
 
-        {/* Layer 3: Radial vignette */}
+        {/* Layer 3: Radial vignette - appears with slight delay (150ms) */}
         <div
-          className="absolute inset-0 transition-opacity duration-600 ease-out"
+          className="absolute inset-0"
           style={{
             opacity: isMenuOpen ? 1 : 0,
+            transition: isMenuOpen
+              ? 'opacity 0.7s ease-out 150ms'
+              : 'opacity 0.3s ease-in 0ms',
             background: 'radial-gradient(ellipse at 30% 50%, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.45) 100%)',
-            transitionDelay: '120ms',
           }}
           onClick={() => setIsMenuOpen(false)}
         />
 
-        {/* Scene list */}
-        <nav className="relative z-10 flex flex-col items-start justify-center h-full pl-12 md:pl-20 gap-1">
+        {/* Scene list - appears after blur is already building (300ms delay) */}
+        <nav
+          className="relative z-10 flex flex-col items-start justify-center h-full pl-12 md:pl-20 gap-1"
+          style={{
+            opacity: isMenuOpen ? 1 : 0,
+            transition: isMenuOpen
+              ? 'opacity 0.5s ease-out 300ms'
+              : 'opacity 0.25s ease-in 0ms',
+          }}
+        >
           <span className="text-white/30 text-[10px] tracking-[0.3em] uppercase mb-4 font-light">
             Espacios
           </span>
@@ -150,7 +154,7 @@ export default function Header() {
                   : 'text-white/40 hover:text-white/90'
               }`}
               style={{
-                animationDelay: isMenuOpen ? `${index * 0.07}s` : '0s',
+                animationDelay: isMenuOpen ? `${0.3 + index * 0.07}s` : '0s',
                 animationPlayState: isMenuOpen ? 'running' : 'paused',
                 fontFamily: "'Inter', sans-serif",
               }}
