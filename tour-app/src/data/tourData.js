@@ -11,6 +11,7 @@ const defaultTourData = {
           x: 35,
           y: 50,
           targetScene: 'salon',
+          direction: 'left',
         },
         {
           id: 'hs-lobby-2',
@@ -18,6 +19,7 @@ const defaultTourData = {
           x: 65,
           y: 50,
           targetScene: 'cocina',
+          direction: 'right',
         },
         {
           id: 'hs-lobby-3',
@@ -25,6 +27,7 @@ const defaultTourData = {
           x: 50,
           y: 60,
           targetScene: null,
+          direction: null,
         },
       ],
     },
@@ -39,6 +42,7 @@ const defaultTourData = {
           x: 20,
           y: 50,
           targetScene: 'lobby',
+          direction: 'left',
         },
         {
           id: 'hs-salon-2',
@@ -46,6 +50,7 @@ const defaultTourData = {
           x: 75,
           y: 45,
           targetScene: 'dormitorio',
+          direction: 'right',
         },
         {
           id: 'hs-salon-3',
@@ -53,6 +58,7 @@ const defaultTourData = {
           x: 50,
           y: 55,
           targetScene: null,
+          direction: null,
         },
       ],
     },
@@ -67,6 +73,7 @@ const defaultTourData = {
           x: 15,
           y: 50,
           targetScene: 'lobby',
+          direction: 'left',
         },
         {
           id: 'hs-cocina-2',
@@ -74,6 +81,7 @@ const defaultTourData = {
           x: 80,
           y: 45,
           targetScene: 'terraza',
+          direction: 'right',
         },
         {
           id: 'hs-cocina-3',
@@ -81,6 +89,7 @@ const defaultTourData = {
           x: 50,
           y: 60,
           targetScene: null,
+          direction: null,
         },
       ],
     },
@@ -95,6 +104,7 @@ const defaultTourData = {
           x: 25,
           y: 50,
           targetScene: 'salon',
+          direction: 'left',
         },
         {
           id: 'hs-dorm-2',
@@ -102,6 +112,7 @@ const defaultTourData = {
           x: 70,
           y: 45,
           targetScene: 'terraza',
+          direction: 'right',
         },
         {
           id: 'hs-dorm-3',
@@ -109,6 +120,7 @@ const defaultTourData = {
           x: 50,
           y: 55,
           targetScene: null,
+          direction: null,
         },
       ],
     },
@@ -123,6 +135,7 @@ const defaultTourData = {
           x: 30,
           y: 50,
           targetScene: 'cocina',
+          direction: 'left',
         },
         {
           id: 'hs-terraza-2',
@@ -130,6 +143,7 @@ const defaultTourData = {
           x: 70,
           y: 50,
           targetScene: 'dormitorio',
+          direction: 'right',
         },
         {
           id: 'hs-terraza-3',
@@ -137,6 +151,7 @@ const defaultTourData = {
           x: 50,
           y: 40,
           targetScene: null,
+          direction: null,
         },
       ],
     },

@@ -23,6 +23,7 @@ export default function AdminPanel() {
   const [placingHotspot, setPlacingHotspot] = useState(false);
   const [newHotspotName, setNewHotspotName] = useState('');
   const [newHotspotTarget, setNewHotspotTarget] = useState('');
+  const [newHotspotDirection, setNewHotspotDirection] = useState('');
   const [editingHotspot, setEditingHotspot] = useState(null);
   const [showAddScene, setShowAddScene] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
@@ -105,10 +106,12 @@ export default function AdminPanel() {
       x,
       y,
       targetScene: newHotspotTarget || null,
+      direction: newHotspotDirection || null,
     });
     setPlacingHotspot(false);
     setNewHotspotName('');
     setNewHotspotTarget('');
+    setNewHotspotDirection('');
   };
 
   const handleImageUpload = async (sceneId, e) => {
@@ -610,6 +613,22 @@ export default function AdminPanel() {
                         <option key={s.id} value={s.id}>{s.name}</option>
                       ))}
                   </select>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-medium" style={{ color: '#888' }}>Flecha:</span>
+                    {['left', '', 'right'].map((dir) => (
+                      <button
+                        key={dir}
+                        onClick={() => setNewHotspotDirection(dir)}
+                        className="px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
+                        style={{
+                          background: newHotspotDirection === dir ? '#111' : '#f0f0f0',
+                          color: newHotspotDirection === dir ? '#fff' : '#666',
+                        }}
+                      >
+                        {dir === 'left' ? '← Izq' : dir === 'right' ? 'Der →' : 'Sin'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -739,6 +758,28 @@ export default function AdminPanel() {
                                     <option key={s.id} value={s.id}>{s.name}</option>
                                   ))}
                               </select>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-medium block mb-1" style={{ color: '#999' }}>Dirección de flecha</label>
+                              <div className="flex gap-1.5">
+                                {[
+                                  { value: 'left', label: '← Izquierda' },
+                                  { value: null, label: 'Sin flecha' },
+                                  { value: 'right', label: 'Derecha →' },
+                                ].map((opt) => (
+                                  <button
+                                    key={opt.value ?? 'none'}
+                                    onClick={() => updateHotspot(selectedSceneId, hs.id, { direction: opt.value })}
+                                    className="flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+                                    style={{
+                                      background: (hs.direction || null) === opt.value ? '#111' : '#f0f0f0',
+                                      color: (hs.direction || null) === opt.value ? '#fff' : '#666',
+                                    }}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                             <button
                               onClick={() => {
