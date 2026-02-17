@@ -1,21 +1,38 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTour } from '../context/TourContext';
 
-export default function Hotspot({ hotspot, isActive = false, onActivate }) {
+const ArrowLeft = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 12H5M12 19l-7-7 7-7" />
+  </svg>
+);
+
+const ArrowRight = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+);
+
+export default function Hotspot({ hotspot, screenX, screenY, isActive = false, onActivate }) {
   const [hovered, setHovered] = useState(false);
   const { navigateToScene } = useTour();
-  const labelRef = useRef(null);
+  const measureRef = useRef(null);
   const [labelWidth, setLabelWidth] = useState(0);
   const touchedRef = useRef(false);
 
   const hasDirection = !!hotspot.direction;
   const expanded = hovered || isActive;
 
+  // Viewport-mapped position (from PanoramaViewer)
+  const posX = screenX ?? hotspot.x;
+  const posY = screenY ?? hotspot.y;
+
+  // Measure from a hidden span that's never constrained by the pill
   useEffect(() => {
-    if (labelRef.current) {
+    if (measureRef.current) {
       requestAnimationFrame(() => {
-        if (labelRef.current) {
-          setLabelWidth(labelRef.current.scrollWidth);
+        if (measureRef.current) {
+          setLabelWidth(measureRef.current.scrollWidth);
         }
       });
     }
@@ -43,11 +60,10 @@ export default function Hotspot({ hotspot, isActive = false, onActivate }) {
     }
   };
 
-  // With direction: dot hides → text+arrow centered across full pill
-  // Without direction: dot stays → text flows after dot
+  // Width calculation uses the hidden measurement
   const expandedWidth = hasDirection
-    ? labelWidth + 32
-    : 38 + labelWidth + 16;
+    ? labelWidth + 32   // 16px padding each side, no dot
+    : 38 + labelWidth + 16; // dot(38) + text + 16px right
 
   const labelStyle = {
     color: 'rgba(255,255,255,0.95)',
@@ -61,12 +77,32 @@ export default function Hotspot({ hotspot, isActive = false, onActivate }) {
       data-hotspot
       className="absolute z-10"
       style={{
-        left: `${hotspot.x}%`,
-        top: `${hotspot.y}%`,
+        left: `${posX}%`,
+        top: `${posY}%`,
         transform: 'translate(-50%, -50%)',
       }}
       onTouchStart={handleTouchStart}
     >
+      {/* Hidden measurement span — always at intrinsic width, never clipped */}
+      <span
+        ref={measureRef}
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          ...labelStyle,
+        }}
+      >
+        {hotspot.direction === 'left' && <ArrowLeft />}
+        {hotspot.name}
+        {hotspot.direction === 'right' && <ArrowRight />}
+      </span>
+
       {/* Pulse ring */}
       <div
         className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -107,7 +143,7 @@ export default function Hotspot({ hotspot, isActive = false, onActivate }) {
         onMouseLeave={() => setHovered(false)}
         onClick={handleClick}
       >
-        {/* Dot — collapses to 0 width when expanded + has direction */}
+        {/* Dot — collapses when expanded + has direction */}
         <div
           className="flex-shrink-0 flex items-center justify-center overflow-hidden"
           style={{
@@ -129,7 +165,7 @@ export default function Hotspot({ hotspot, isActive = false, onActivate }) {
         </div>
 
         {hasDirection ? (
-          /* With direction — label centered across full pill, no dot */
+          /* With direction — centered across full pill */
           <span
             className="absolute inset-0 whitespace-nowrap flex items-center justify-center pointer-events-none"
             style={{
@@ -137,28 +173,15 @@ export default function Hotspot({ hotspot, isActive = false, onActivate }) {
               transition: 'opacity 0.35s ease 0.1s',
             }}
           >
-            <span
-              ref={labelRef}
-              className="flex items-center gap-1.5"
-              style={labelStyle}
-            >
-              {hotspot.direction === 'left' && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7" />
-                </svg>
-              )}
+            <span className="flex items-center gap-1.5" style={labelStyle}>
+              {hotspot.direction === 'left' && <ArrowLeft />}
               {hotspot.name}
-              {hotspot.direction === 'right' && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              )}
+              {hotspot.direction === 'right' && <ArrowRight />}
             </span>
           </span>
         ) : (
-          /* Without direction — label flows after dot with proper spacing */
+          /* Without direction — flows after dot */
           <span
-            ref={labelRef}
             className="whitespace-nowrap flex items-center"
             style={{
               ...labelStyle,

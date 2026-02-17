@@ -7,7 +7,14 @@ export default function PanoramaViewer() {
   const [transitioning, setTransitioning] = useState(false);
   const [displayScene, setDisplayScene] = useState(currentScene);
 
-  // Mobile pan via object-position (percentage offset from center, -50 to 50)
+  // Image natural dimensions (from onLoad)
+  const [imgNat, setImgNat] = useState({ w: 0, h: 0 });
+
+  // Container dimensions (via ResizeObserver)
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+
+  // Mobile pan via object-position (offset from center, -50 to 50)
   const [panPct, setPanPct] = useState(0);
   const panPctRef = useRef(0);
   const touchRef = useRef(null);
@@ -18,6 +25,18 @@ export default function PanoramaViewer() {
   const updatePan = useCallback((val) => {
     panPctRef.current = val;
     setPanPct(val);
+  }, []);
+
+  // Track container size
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      setContainerSize({ w: width, h: height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // Scene transition
@@ -36,6 +55,40 @@ export default function PanoramaViewer() {
     }
   }, [currentScene, displayScene, updatePan]);
 
+  const handleImageLoad = useCallback((e) => {
+    setImgNat({ w: e.target.naturalWidth, h: e.target.naturalHeight });
+  }, []);
+
+  // Map image-relative coordinates (0-100) to viewport-relative coordinates,
+  // accounting for object-cover scaling and current object-position.
+  const getScreenPos = useCallback((hx, hy) => {
+    const { w: cw, h: ch } = containerSize;
+    const { w: iw, h: ih } = imgNat;
+    if (!cw || !ch || !iw || !ih) return { x: hx, y: hy };
+
+    const scale = Math.max(cw / iw, ch / ih);
+    const dw = iw * scale; // displayed image width
+    const dh = ih * scale; // displayed image height
+
+    // object-position percentages (50% = center by default, shifted by pan)
+    const opx = (50 - panPct) / 100;
+    const opy = 0.5;
+
+    // How much of the image overflows and is cropped
+    const ox = (dw - cw) * opx;
+    const oy = (dh - ch) * opy;
+
+    // Image coordinate → viewport coordinate
+    const viewX = (hx / 100) * dw - ox;
+    const viewY = (hy / 100) * dh - oy;
+
+    return {
+      x: (viewX / cw) * 100,
+      y: (viewY / ch) * 100,
+    };
+  }, [containerSize, imgNat, panPct]);
+
+  // Touch handlers
   const handleTouchStart = useCallback((e) => {
     if (e.target.closest('[data-hotspot]')) return;
     touchRef.current = {
@@ -75,6 +128,7 @@ export default function PanoramaViewer() {
 
   return (
     <div
+      ref={containerRef}
       className={`w-full h-full overflow-hidden relative bg-black ${
         transitioning ? 'opacity-0' : 'opacity-100'
       } transition-opacity duration-400`}
@@ -83,24 +137,29 @@ export default function PanoramaViewer() {
       onTouchEnd={handleTouchEnd}
       style={{ touchAction: 'none' }}
     >
-      {/* Scene image — panned via object-position on touch */}
       <img
         src={displayScene.image}
         alt={displayScene.name}
         className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
         style={{ objectPosition: `${50 - panPct}% 50%` }}
         draggable={false}
+        onLoad={handleImageLoad}
       />
 
-      {/* Hotspots — always positioned relative to viewport */}
-      {displayScene.hotspots.map((hotspot) => (
-        <Hotspot
-          key={hotspot.id}
-          hotspot={hotspot}
-          isActive={activeHotspotId === hotspot.id}
-          onActivate={setActiveHotspotId}
-        />
-      ))}
+      {/* Hotspots — mapped from image coords to viewport coords */}
+      {displayScene.hotspots.map((hotspot) => {
+        const pos = getScreenPos(hotspot.x, hotspot.y);
+        return (
+          <Hotspot
+            key={hotspot.id}
+            hotspot={hotspot}
+            screenX={pos.x}
+            screenY={pos.y}
+            isActive={activeHotspotId === hotspot.id}
+            onActivate={setActiveHotspotId}
+          />
+        );
+      })}
     </div>
   );
 }
